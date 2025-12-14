@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="msapplication-tap-highlight" content="no" />
+
+  <title>V4L - Vocal 4 Local</title>
+  <meta name="description" content="Connecting Local Businesses with Local Customers - V4L (Vocal 4 Local) brings together local businesses and their community." />
+  <meta name="keywords" content="local business, local customers, community, marketplace, vocal 4 local, v4l" />
+  <meta name="author" content="V4L Team" />
+
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#3880ff" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="V4L" />
+  <link rel="manifest" href="/manifest.json" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://v4l.app/" />
+  <meta property="og:title" content="V4L - Vocal 4 Local" />
+  <meta property="og:description" content="Connecting Local Businesses with Local Customers" />
+  <meta property="og:image" content="https://v4l.app/og-image.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://v4l.app/" />
+  <meta property="twitter:title" content="V4L - Vocal 4 Local" />
+  <meta property="twitter:description" content="Connecting Local Businesses with Local Customers" />
+  <meta property="twitter:image" content="https://v4l.app/og-image.png" />
+
+  <!-- Ionic Core CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core@8/css/ionic.bundle.css" />
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="/css/app.css" />
+
+  <!-- Capacitor -->
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core@8/dist/ionic/ionic.esm.js"></script>
+  <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core@8/dist/ionic/ionic.js"></script>
+</head>
+
+<body>
+  <ion-app>
+    <!-- Mock Mode Banner -->
+    <div id="mock-mode-banner" class="mock-mode-banner hidden">
+      <ion-icon name="flask-outline"></ion-icon>
+      <span>Development Mode - No backend required</span>
+    </div>
+
+    <!-- Router Outlet -->
+    <ion-router-outlet id="main-outlet"></ion-router-outlet>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading...</p>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+  </ion-app>
+
+  <!-- App Initialization -->
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

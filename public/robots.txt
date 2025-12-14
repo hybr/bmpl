@@ -1,0 +1,17 @@
+# V4L - Vocal 4 Local
+# https://v4l.app
+
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Allow: /password-reset
+
+# Disallow authenticated pages from crawling
+Disallow: /dashboard
+Disallow: /organizations
+Disallow: /profile
+Disallow: /settings
+
+# Sitemap
+Sitemap: https://v4l.app/sitemap.xml
