@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm run build:*)",
-      "Bash(dir /s \"C:\\Users\\fwyog\\bmpa\\src\\js\")"
+      "Bash(dir /s \"C:\\Users\\fwyog\\bmpa\\src\\js\")",
+      "Bash(npm run dev:*)"
     ]
   }
 }
