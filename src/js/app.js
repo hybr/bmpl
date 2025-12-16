@@ -259,6 +259,60 @@ class App {
       { requiresAuth: true, title: 'Organization Settings - V4L' }
     );
 
+    // BPM - Dashboard (requires auth)
+    router.register(
+      '/myspace/dashboard',
+      async () => {
+        await this.loadPage('myspace/myspace-dashboard-page');
+      },
+      { requiresAuth: true, title: 'Dashboard - V4L' }
+    );
+
+    // BPM - Processes List (requires auth)
+    router.register(
+      '/myspace/processes',
+      async () => {
+        await this.loadPage('myspace/myspace-processes-page');
+      },
+      { requiresAuth: true, title: 'Processes - V4L' }
+    );
+
+    // BPM - My Tasks (requires auth)
+    router.register(
+      '/myspace/tasks',
+      async () => {
+        await this.loadPage('myspace/myspace-tasks-page');
+      },
+      { requiresAuth: true, title: 'My Tasks - V4L' }
+    );
+
+    // BPM - Reports (requires auth)
+    router.register(
+      '/myspace/reports',
+      async () => {
+        await this.loadPage('myspace/myspace-reports-page');
+      },
+      { requiresAuth: true, title: 'Reports - V4L' }
+    );
+
+    // BPM - Process Detail (requires auth)
+    router.register(
+      '/process/:id',
+      async (params) => {
+        await this.loadPage('process/process-detail-page', params);
+      },
+      { requiresAuth: true, title: 'Process Detail - V4L' }
+    );
+
+    // BPM - Process Create (requires auth)
+    router.register(
+      '/process/create',
+      async () => {
+        await this.loadPage('process/process-create-page');
+      },
+      { requiresAuth: true, title: 'Create Process - V4L' }
+    );
+
     // Profile (requires auth)
     router.register(
       ROUTES.PROFILE,

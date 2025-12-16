@@ -284,8 +284,36 @@ class ProcessState extends Store {
   }
 
   /**
+   * Get processes by category
+   * @param {string} category - Process category (from PROCESS_CATEGORIES)
+   * @param {function} getDefinition - Function to get process definition
+   * @returns {array} Processes in the category
+   */
+  getProcessesByCategory(category, getDefinition) {
+    if (!getDefinition) {
+      console.warn('getDefinition function required for category filtering');
+      return [];
+    }
+
+    return Object.values(this._state.processes).filter(process => {
+      const definition = getDefinition(process.definitionId);
+      return definition?.metadata?.category === category;
+    });
+  }
+
+  /**
+   * Get process count by category
+   * @param {string} category - Process category
+   * @param {function} getDefinition - Function to get process definition
+   * @returns {number} Count
+   */
+  getProcessCountByCategory(category, getDefinition) {
+    return this.getProcessesByCategory(category, getDefinition).length;
+  }
+
+  /**
    * Search processes by variables
-   * Simple search implementation - can be enhanced later
+   * Enhanced search with multiple criteria support
    */
   searchProcesses(criteria) {
     return Object.values(this._state.processes).filter(process => {
@@ -307,6 +335,232 @@ class ProcessState extends Store {
 
       // All criteria matched
       return true;
+    });
+  }
+
+  /**
+   * Advanced filter processes
+   * @param {object} filters - Filter options
+   * @returns {array} Filtered processes
+   */
+  filterProcesses(filters = {}) {
+    let processes = Object.values(this._state.processes);
+
+    // Filter by definition ID
+    if (filters.definitionId) {
+      processes = processes.filter(p => p.definitionId === filters.definitionId);
+    }
+
+    // Filter by status (single or array)
+    if (filters.status) {
+      const statuses = Array.isArray(filters.status) ? filters.status : [filters.status];
+      processes = processes.filter(p => statuses.includes(p.status));
+    }
+
+    // Filter by current state
+    if (filters.currentState) {
+      processes = processes.filter(p => p.currentState === filters.currentState);
+    }
+
+    // Filter by category (requires getDefinition function)
+    if (filters.category && filters.getDefinition) {
+      processes = processes.filter(p => {
+        const definition = filters.getDefinition(p.definitionId);
+        return definition?.metadata?.category === filters.category;
+      });
+    }
+
+    // Filter by date range
+    if (filters.dateRange) {
+      const { start, end } = filters.dateRange;
+      processes = processes.filter(p => {
+        const created = new Date(p.createdAt).getTime();
+        return created >= start && created <= end;
+      });
+    }
+
+    // Filter by search query (searches in variables)
+    if (filters.query) {
+      const lowerQuery = filters.query.toLowerCase();
+      processes = processes.filter(p => {
+        // Search in process ID
+        if (p._id.toLowerCase().includes(lowerQuery)) return true;
+
+        // Search in variables
+        if (p.variables) {
+          return Object.values(p.variables).some(value => {
+            if (typeof value === 'string') {
+              return value.toLowerCase().includes(lowerQuery);
+            }
+            return false;
+          });
+        }
+
+        return false;
+      });
+    }
+
+    // Filter by custom variable values
+    if (filters.variables) {
+      processes = processes.filter(p => {
+        return Object.entries(filters.variables).every(([key, value]) => {
+          return p.variables?.[key] === value;
+        });
+      });
+    }
+
+    // Sort
+    if (filters.sortBy) {
+      processes = this.sortProcesses(processes, filters.sortBy, filters.sortOrder);
+    }
+
+    return processes;
+  }
+
+  /**
+   * Sort processes
+   * @param {array} processes - Processes to sort
+   * @param {string} sortBy - Field to sort by
+   * @param {string} sortOrder - 'asc' or 'desc'
+   * @returns {array} Sorted processes
+   */
+  sortProcesses(processes, sortBy, sortOrder = 'desc') {
+    const sorted = [...processes];
+
+    sorted.sort((a, b) => {
+      let valueA, valueB;
+
+      switch (sortBy) {
+        case 'createdAt':
+        case 'updatedAt':
+        case 'completedAt':
+          valueA = new Date(a[sortBy] || 0).getTime();
+          valueB = new Date(b[sortBy] || 0).getTime();
+          break;
+
+        case 'status':
+        case 'currentState':
+          valueA = a[sortBy] || '';
+          valueB = b[sortBy] || '';
+          break;
+
+        default:
+          // Try to get from variables
+          valueA = a.variables?.[sortBy] || '';
+          valueB = b.variables?.[sortBy] || '';
+      }
+
+      if (sortOrder === 'asc') {
+        return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+      } else {
+        return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+      }
+    });
+
+    return sorted;
+  }
+
+  /**
+   * Paginate processes
+   * @param {array} processes - Processes to paginate
+   * @param {number} page - Page number (1-based)
+   * @param {number} pageSize - Items per page
+   * @returns {object} { processes, total, pages, page, pageSize }
+   */
+  paginateProcesses(processes, page = 1, pageSize = 50) {
+    const total = processes.length;
+    const pages = Math.ceil(total / pageSize);
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+
+    return {
+      processes: processes.slice(start, end),
+      total,
+      pages,
+      page,
+      pageSize,
+      hasNext: page < pages,
+      hasPrev: page > 1
+    };
+  }
+
+  /**
+   * Get processes with pagination and filters
+   * @param {object} options - { filters, page, pageSize }
+   * @returns {object} Paginated and filtered processes
+   */
+  getProcessesPaginated(options = {}) {
+    const {
+      filters = {},
+      page = 1,
+      pageSize = 50
+    } = options;
+
+    const filtered = this.filterProcesses(filters);
+    return this.paginateProcesses(filtered, page, pageSize);
+  }
+
+  /**
+   * Full-text search across all process data
+   * @param {string} query - Search query
+   * @returns {array} Matching processes
+   */
+  fullTextSearch(query) {
+    if (!query || query.trim() === '') {
+      return this.getAllProcesses();
+    }
+
+    const lowerQuery = query.toLowerCase();
+
+    return Object.values(this._state.processes).filter(process => {
+      // Search in process ID
+      if (process._id.toLowerCase().includes(lowerQuery)) {
+        return true;
+      }
+
+      // Search in definition ID
+      if (process.definitionId.toLowerCase().includes(lowerQuery)) {
+        return true;
+      }
+
+      // Search in current state
+      if (process.currentState.toLowerCase().includes(lowerQuery)) {
+        return true;
+      }
+
+      // Search in status
+      if (process.status.toLowerCase().includes(lowerQuery)) {
+        return true;
+      }
+
+      // Search in variables
+      if (process.variables) {
+        const variableMatch = Object.values(process.variables).some(value => {
+          if (typeof value === 'string') {
+            return value.toLowerCase().includes(lowerQuery);
+          }
+          if (typeof value === 'number') {
+            return String(value).includes(query);
+          }
+          return false;
+        });
+
+        if (variableMatch) return true;
+      }
+
+      // Search in metadata
+      if (process.metadata) {
+        const metadataMatch = Object.values(process.metadata).some(value => {
+          if (typeof value === 'string') {
+            return value.toLowerCase().includes(lowerQuery);
+          }
+          return false;
+        });
+
+        if (metadataMatch) return true;
+      }
+
+      return false;
     });
   }
 

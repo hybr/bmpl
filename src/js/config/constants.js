@@ -92,6 +92,8 @@ export const EVENTS = {
   NETWORK_STATE_CHANGED: 'network:statechanged',
   DB_CHANGE: 'db:change',
   ERROR: 'app:error',
+
+  // Process Events
   PROCESS_CREATED: 'process:created',
   PROCESS_STATE_CHANGED: 'process:state:changed',
   PROCESS_UPDATED: 'process:updated',
@@ -100,7 +102,24 @@ export const EVENTS = {
   PROCESS_FAILED: 'process:failed',
   PROCESS_SYNC_STARTED: 'process:sync:started',
   PROCESS_SYNC_COMPLETED: 'process:sync:completed',
-  PROCESS_SYNC_ERROR: 'process:sync:error'
+  PROCESS_SYNC_ERROR: 'process:sync:error',
+
+  // Document Events
+  DOCUMENT_UPLOADED: 'document:uploaded',
+  DOCUMENT_DELETED: 'document:deleted',
+  DOCUMENT_DOWNLOADED: 'document:downloaded',
+
+  // Task Events
+  TASK_ASSIGNED: 'task:assigned',
+  TASK_COMPLETED: 'task:completed',
+
+  // Analytics Events
+  ANALYTICS_UPDATED: 'analytics:updated',
+
+  // Navigation Events
+  NAVIGATION_TAB_CHANGED: 'navigation:tab-changed',
+  NAVIGATION_SUBTAB_CLICKED: 'navigation:subtab-clicked',
+  NAVIGATION_LEVEL_CHANGED: 'navigation:level-changed'
 };
 
 // Error Codes
@@ -127,13 +146,66 @@ export const HTTP_STATUS = {
   INTERNAL_SERVER_ERROR: 500
 };
 
+// Process Categories
+export const PROCESS_CATEGORIES = {
+  FINANCIAL: 'financial',
+  OPERATIONS: 'operations',
+  HR: 'hr',
+  SUPPLY_CHAIN: 'supply_chain',
+  PROJECTS: 'projects',
+  MARKETING: 'marketing',
+  IT: 'it',
+  CUSTOMER: 'customer',
+  COMPLIANCE: 'compliance'
+};
+
 // Process Types
 export const PROCESS_TYPES = {
+  // Existing
   ORDER: 'order',
   JOB_APPLICATION: 'job_application',
   TASK: 'task',
   ONBOARDING: 'onboarding',
-  CUSTOM: 'custom'
+  CUSTOM: 'custom',
+
+  // Financial
+  FINANCIAL_INVOICE: 'financial_invoice',
+  FINANCIAL_EXPENSE: 'financial_expense',
+  FINANCIAL_BUDGET: 'financial_budget',
+
+  // Operations
+  OPS_SALES_ORDER: 'ops_sales_order',
+  OPS_SERVICE_REQUEST: 'ops_service_request',
+  OPS_INVENTORY: 'ops_inventory',
+
+  // HR
+  HR_ONBOARDING: 'hr_onboarding',
+  HR_LEAVE: 'hr_leave',
+  HR_PERFORMANCE: 'hr_performance',
+
+  // Supply Chain
+  SC_PURCHASE_ORDER: 'sc_purchase_order',
+  SC_VENDOR_ONBOARDING: 'sc_vendor_onboarding',
+  SC_QC_INSPECTION: 'sc_qc_inspection',
+
+  // Projects
+  PROJECT_INITIATION: 'project_initiation',
+  PROJECT_MILESTONE: 'project_milestone',
+
+  // Marketing
+  MKT_CAMPAIGN: 'mkt_campaign',
+  MKT_LEAD: 'mkt_lead',
+
+  // IT
+  IT_TICKET: 'it_ticket',
+  IT_CHANGE_REQUEST: 'it_change_request',
+
+  // Customer
+  CUSTOMER_ONBOARDING: 'customer_onboarding',
+
+  // Compliance
+  LEGAL_CONTRACT: 'legal_contract',
+  COMPLIANCE_AUDIT: 'compliance_audit'
 };
 
 // Process Status
@@ -152,6 +224,34 @@ export const PROCESS_SYNC_STATUS = {
   SYNCING: 'syncing',
   CONFLICT: 'conflict',
   ERROR: 'error'
+};
+
+// Process Priority Levels
+export const PROCESS_PRIORITY = {
+  CRITICAL: 'critical',
+  HIGH: 'high',
+  MEDIUM: 'medium',
+  LOW: 'low'
+};
+
+// Approval Levels (extends ROLES for process approvals)
+export const APPROVAL_LEVELS = {
+  MEMBER: 'member',
+  MANAGER: 'manager',
+  ADMIN: 'admin',
+  DIRECTOR: 'director',
+  EXECUTIVE: 'executive',
+  OWNER: 'owner'
+};
+
+// Approval Level Hierarchy (for permission checking)
+export const APPROVAL_HIERARCHY = {
+  [APPROVAL_LEVELS.MEMBER]: 1,
+  [APPROVAL_LEVELS.MANAGER]: 2,
+  [APPROVAL_LEVELS.ADMIN]: 3,
+  [APPROVAL_LEVELS.DIRECTOR]: 4,
+  [APPROVAL_LEVELS.EXECUTIVE]: 5,
+  [APPROVAL_LEVELS.OWNER]: 6
 };
 
 // Username Validation
@@ -188,3 +288,52 @@ export const ROUTES_AUTH = {
   PASSWORD_RESET: '/password-reset',
   PASSWORD_RESET_CONFIRM: '/password-reset-confirm'
 };
+
+// Document Management
+export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+export const MAX_FILES_PER_PROCESS = 20;
+export const ALLOWED_FILE_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/gif',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'text/plain',
+  'text/csv'
+];
+
+export const FILE_TYPE_ICONS = {
+  'application/pdf': 'document',
+  'image/jpeg': 'image',
+  'image/jpg': 'image',
+  'image/png': 'image',
+  'image/gif': 'image',
+  'application/msword': 'document-text',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'document-text',
+  'application/vnd.ms-excel': 'grid',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'grid',
+  'text/plain': 'document-text',
+  'text/csv': 'grid',
+  'default': 'document-attach'
+};
+
+// Analytics
+export const ANALYTICS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+export const ANALYTICS_DATE_RANGES = {
+  TODAY: 'today',
+  YESTERDAY: 'yesterday',
+  LAST_7_DAYS: 'last_7_days',
+  LAST_30_DAYS: 'last_30_days',
+  THIS_MONTH: 'this_month',
+  LAST_MONTH: 'last_month',
+  THIS_YEAR: 'this_year',
+  CUSTOM: 'custom'
+};
+
+// Pagination
+export const DEFAULT_PAGE_SIZE = 50;
+export const MAX_PAGE_SIZE = 100;

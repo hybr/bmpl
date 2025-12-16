@@ -90,10 +90,10 @@ export class BottomTabs {
       ],
       myspace: [
         { id: 'back', label: 'Back', icon: 'arrow-back' },
-        { id: 'orgs', label: 'Orgs', icon: 'business' },
-        { id: 'orders', label: 'Orders', icon: 'cart' },
-        { id: 'tasks', label: 'Tasks', icon: 'checkbox' },
-        { id: 'addorg', label: 'Add', icon: 'add-circle' }
+        { id: 'dashboard', label: 'Dashboard', icon: 'speedometer' },
+        { id: 'processes', label: 'Processes', icon: 'git-network' },
+        { id: 'tasks', label: 'My Tasks', icon: 'checkbox' },
+        { id: 'reports', label: 'Reports', icon: 'bar-chart' }
       ],
       account: isAuthenticated ? [
         { id: 'back', label: 'Back', icon: 'arrow-back' },
