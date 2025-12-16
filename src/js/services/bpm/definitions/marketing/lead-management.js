@@ -9,7 +9,7 @@ export const leadManagementDefinition = {
   id: 'lead_management_v1',
   name: 'Lead Management',
   description: 'Sales lead tracking and conversion workflow',
-  type: PROCESS_TYPES.MARKETING_LEAD,
+  type: PROCESS_TYPES.MKT_LEAD,
   version: '1.0.0',
   initialState: 'new',
 

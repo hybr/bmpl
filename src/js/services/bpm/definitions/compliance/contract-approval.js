@@ -9,7 +9,7 @@ export const contractApprovalDefinition = {
   id: 'contract_approval_v1',
   name: 'Contract Approval',
   description: 'Contract review and approval workflow',
-  type: PROCESS_TYPES.COMPLIANCE_CONTRACT,
+  type: PROCESS_TYPES.LEGAL_CONTRACT,
   version: '1.0.0',
   initialState: 'draft',
 

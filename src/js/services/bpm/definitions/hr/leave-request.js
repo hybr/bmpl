@@ -15,7 +15,7 @@ export const leaveRequestDefinition = {
   id: 'leave_request_v1',
   name: 'Leave Request',
   description: 'Employee time-off request and approval workflow',
-  type: PROCESS_TYPES.HR_LEAVE_REQUEST,
+  type: PROCESS_TYPES.HR_LEAVE,
   version: '1.0.0',
   initialState: 'submitted',
 

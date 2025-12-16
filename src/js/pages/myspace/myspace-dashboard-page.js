@@ -9,6 +9,9 @@ import { processService } from '../../services/bpm/process-service.js';
 import { analyticsService } from '../../services/bpm/analytics-service.js';
 import { taskService } from '../../services/bpm/task-service.js';
 import { formatDate, getRelativeTime } from '../../utils/date-utils.js';
+import { LineChart } from '../../components/charts/line-chart.js';
+import { PieChart } from '../../components/charts/pie-chart.js';
+import { BarChart } from '../../components/charts/bar-chart.js';
 
 export class MySpaceDashboardPage extends BasePage {
   constructor() {
@@ -16,6 +19,7 @@ export class MySpaceDashboardPage extends BasePage {
     this.stats = null;
     this.recentProcesses = [];
     this.myTasks = [];
+    this.charts = {};
   }
 
   /**
@@ -34,6 +38,7 @@ export class MySpaceDashboardPage extends BasePage {
 
       // Render all sections
       this.renderStats();
+      this.renderCharts();
       this.renderRecentActivity();
       this.renderActionItems();
 
@@ -192,6 +197,221 @@ export class MySpaceDashboardPage extends BasePage {
         </ion-card-content>
       </ion-card>
     `;
+  }
+
+  /**
+   * Render charts (Phase 5 Enhancement)
+   */
+  renderCharts() {
+    const container = this.querySelector('#dashboard-charts');
+    if (!container) return;
+
+    // Cleanup existing charts
+    Object.values(this.charts).forEach(chart => {
+      if (chart && chart.destroy) chart.destroy();
+    });
+    this.charts = {};
+
+    // Get analytics data
+    const last30Days = {
+      start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).getTime(),
+      end: Date.now()
+    };
+
+    const trendData = analyticsService.getProcessTrend(null, 'day', last30Days);
+    const categoryData = analyticsService.getProcessesByCategory();
+    const efficiencyData = analyticsService.getProcessEfficiencyReport({});
+
+    container.innerHTML = `
+      <div class="charts-container" style="margin: 20px 0;">
+        <!-- Process Trend Chart -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Process Trend (Last 30 Days)</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div style="position: relative; height: 250px;">
+              <canvas id="trend-chart" style="width: 100%; height: 100%;"></canvas>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Category & Top Processes Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+          <!-- Category Distribution -->
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>By Category</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div style="position: relative; height: 250px;">
+                <canvas id="category-chart" style="width: 100%; height: 100%;"></canvas>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Top Process Types -->
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>Top Process Types</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div style="position: relative; height: 250px;">
+                <canvas id="top-processes-chart" style="width: 100%; height: 100%;"></canvas>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
+        <!-- Advanced Metrics -->
+        <ion-card style="margin-top: 16px;">
+          <ion-card-header>
+            <ion-card-title>Performance Metrics</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+              ${this.renderAdvancedMetrics()}
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    `;
+
+    // Render charts after DOM is ready
+    setTimeout(() => {
+      this.renderTrendChart(trendData);
+      this.renderCategoryChart(categoryData);
+      this.renderTopProcessesChart(efficiencyData);
+    }, 100);
+  }
+
+  /**
+   * Render process trend chart
+   */
+  renderTrendChart(trendData) {
+    if (!trendData || trendData.length === 0) return;
+
+    const labels = trendData.map(d => {
+      const date = new Date(d.period);
+      return `${date.getMonth() + 1}/${date.getDate()}`;
+    });
+
+    const chartData = {
+      labels: labels,
+      series: [
+        {
+          name: 'Created',
+          values: trendData.map(d => d.created),
+          color: '#3b82f6'
+        },
+        {
+          name: 'Completed',
+          values: trendData.map(d => d.completed),
+          color: '#10b981'
+        }
+      ]
+    };
+
+    this.charts.trend = new LineChart('trend-chart', {
+      title: '',
+      type: 'line',
+      smooth: true,
+      showLegend: true,
+      showPoints: true
+    });
+    this.charts.trend.setData(chartData);
+  }
+
+  /**
+   * Render category distribution chart
+   */
+  renderCategoryChart(categoryData) {
+    const data = Object.entries(categoryData)
+      .filter(([_, count]) => count > 0)
+      .map(([category, count]) => ({
+        label: this.formatCategoryName(category),
+        value: count
+      }));
+
+    if (data.length === 0) return;
+
+    this.charts.category = new PieChart('category-chart', {
+      title: '',
+      type: 'donut',
+      showLegend: true,
+      legendPosition: 'right'
+    });
+    this.charts.category.setData(data);
+  }
+
+  /**
+   * Render top processes chart
+   */
+  renderTopProcessesChart(efficiencyData) {
+    if (!efficiencyData || !efficiencyData.byType) return;
+
+    const data = efficiencyData.byType
+      .slice(0, 5)
+      .map(item => ({
+        label: item.name,
+        value: item.total
+      }));
+
+    if (data.length === 0) return;
+
+    this.charts.topProcesses = new BarChart('top-processes-chart', {
+      title: '',
+      type: 'horizontal',
+      barColor: '#f59e0b',
+      showValues: true
+    });
+    this.charts.topProcesses.setData(data);
+  }
+
+  /**
+   * Render advanced metrics
+   */
+  renderAdvancedMetrics() {
+    const metrics = analyticsService.getProcessMetrics({});
+    const sla = analyticsService.getSLACompliance({});
+
+    const completionRate = metrics.completionRate || 0;
+    const avgDuration = metrics.avgDuration || 0;
+    const slaCompliance = sla.complianceRate || 0;
+
+    return `
+      <div style="padding: 16px; background: var(--ion-color-light); border-radius: 8px;">
+        <div style="font-size: 12px; color: var(--ion-color-medium); margin-bottom: 4px;">Completion Rate</div>
+        <div style="font-size: 24px; font-weight: bold; color: var(--ion-color-success);">${completionRate.toFixed(1)}%</div>
+      </div>
+      <div style="padding: 16px; background: var(--ion-color-light); border-radius: 8px;">
+        <div style="font-size: 12px; color: var(--ion-color-medium); margin-bottom: 4px;">Avg Duration</div>
+        <div style="font-size: 24px; font-weight: bold; color: var(--ion-color-primary);">${this.formatDuration(avgDuration)}</div>
+      </div>
+      <div style="padding: 16px; background: var(--ion-color-light); border-radius: 8px;">
+        <div style="font-size: 12px; color: var(--ion-color-medium); margin-bottom: 4px;">SLA Compliance</div>
+        <div style="font-size: 24px; font-weight: bold; color: ${slaCompliance >= 80 ? 'var(--ion-color-success)' : 'var(--ion-color-danger)'};">${slaCompliance.toFixed(1)}%</div>
+      </div>
+      <div style="padding: 16px; background: var(--ion-color-light); border-radius: 8px;">
+        <div style="font-size: 12px; color: var(--ion-color-medium); margin-bottom: 4px;">Active Rate</div>
+        <div style="font-size: 24px; font-weight: bold; color: var(--ion-color-warning);">${(metrics.activeRate || 0).toFixed(1)}%</div>
+      </div>
+    `;
+  }
+
+  /**
+   * Format duration helper
+   */
+  formatDuration(ms) {
+    if (ms === 0) return '0s';
+
+    const days = Math.floor(ms / (24 * 60 * 60 * 1000));
+    const hours = Math.floor((ms % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+    const minutes = Math.floor((ms % (60 * 60 * 1000)) / (60 * 1000));
+
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
   }
 
   /**
@@ -405,6 +625,12 @@ export class MySpaceDashboardPage extends BasePage {
     if (this.unsubscribe) {
       this.unsubscribe();
     }
+
+    // Cleanup charts
+    Object.values(this.charts).forEach(chart => {
+      if (chart && chart.destroy) chart.destroy();
+    });
+    this.charts = {};
   }
 
   /**
@@ -430,6 +656,7 @@ export class MySpaceDashboardPage extends BasePage {
 
         <div id="dashboard-content" class="dashboard-container">
           <div id="dashboard-stats"></div>
+          <div id="dashboard-charts"></div>
           <div id="action-items"></div>
           <div id="recent-activity"></div>
         </div>

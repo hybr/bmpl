@@ -16,7 +16,7 @@ class App {
   constructor() {
     this.initialized = false;
     // Preload page modules using Vite's import.meta.glob
-    this.pageModules = import.meta.glob('./pages/*.js');
+    this.pageModules = import.meta.glob('./pages/**/*.js');
   }
 
   /**
@@ -50,7 +50,7 @@ class App {
       this.setupNetworkMonitoring();
 
       // Initialize BPM Framework
-      initializeBPM();
+      await initializeBPM();
 
       // Expose BPM globally in debug mode for testing
       if (ENV.DEBUG) {
@@ -293,6 +293,15 @@ class App {
         await this.loadPage('myspace/myspace-reports-page');
       },
       { requiresAuth: true, title: 'Reports - V4L' }
+    );
+
+    // BPM - Analytics (requires auth) - Phase 5
+    router.register(
+      '/myspace/analytics',
+      async () => {
+        await this.loadPage('myspace/myspace-analytics-page');
+      },
+      { requiresAuth: true, title: 'Analytics - V4L' }
     );
 
     // BPM - Process Detail (requires auth)

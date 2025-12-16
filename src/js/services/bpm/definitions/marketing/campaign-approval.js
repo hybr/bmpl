@@ -9,7 +9,7 @@ export const campaignApprovalDefinition = {
   id: 'campaign_approval_v1',
   name: 'Campaign Approval',
   description: 'Marketing campaign approval and execution workflow',
-  type: PROCESS_TYPES.MARKETING_CAMPAIGN,
+  type: PROCESS_TYPES.MKT_CAMPAIGN,
   version: '1.0.0',
   initialState: 'draft',
 

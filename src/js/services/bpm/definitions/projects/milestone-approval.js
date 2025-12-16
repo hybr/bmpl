@@ -9,7 +9,7 @@ export const milestoneApprovalDefinition = {
   id: 'milestone_approval_v1',
   name: 'Milestone Approval',
   description: 'Project milestone completion and approval workflow',
-  type: PROCESS_TYPES.PROJECTS_MILESTONE_APPROVAL,
+  type: PROCESS_TYPES.PROJECT_MILESTONE,
   version: '1.0.0',
   initialState: 'pending',
 

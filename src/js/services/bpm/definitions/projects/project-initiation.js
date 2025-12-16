@@ -9,7 +9,7 @@ export const projectInitiationDefinition = {
   id: 'project_initiation_v1',
   name: 'Project Initiation',
   description: 'New project approval and planning workflow',
-  type: PROCESS_TYPES.PROJECTS_PROJECT_INITIATION,
+  type: PROCESS_TYPES.PROJECT_INITIATION,
   version: '1.0.0',
   initialState: 'concept',
 

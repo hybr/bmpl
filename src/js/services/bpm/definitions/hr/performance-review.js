@@ -9,7 +9,7 @@ export const performanceReviewDefinition = {
   id: 'performance_review_v1',
   name: 'Performance Review',
   description: 'Employee performance review workflow',
-  type: PROCESS_TYPES.HR_PERFORMANCE_REVIEW,
+  type: PROCESS_TYPES.HR_PERFORMANCE,
   version: '1.0.0',
   initialState: 'scheduled',
 

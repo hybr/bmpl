@@ -9,7 +9,7 @@ export const serviceRequestDefinition = {
   id: 'service_request_v1',
   name: 'Service Request',
   description: 'Customer service request and resolution workflow',
-  type: PROCESS_TYPES.OPERATIONS_SERVICE_REQUEST,
+  type: PROCESS_TYPES.OPS_SERVICE_REQUEST,
   version: '1.0.0',
   initialState: 'submitted',
 

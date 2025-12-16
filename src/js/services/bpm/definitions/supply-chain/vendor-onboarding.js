@@ -9,7 +9,7 @@ export const vendorOnboardingDefinition = {
   id: 'vendor_onboarding_v1',
   name: 'Vendor Onboarding',
   description: 'New vendor verification and onboarding workflow',
-  type: PROCESS_TYPES.SUPPLY_CHAIN_VENDOR_ONBOARDING,
+  type: PROCESS_TYPES.SC_VENDOR_ONBOARDING,
   version: '1.0.0',
   initialState: 'application',
 

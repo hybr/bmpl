@@ -9,7 +9,7 @@ export const qcInspectionDefinition = {
   id: 'qc_inspection_v1',
   name: 'QC Inspection',
   description: 'Quality control inspection workflow',
-  type: PROCESS_TYPES.SUPPLY_CHAIN_QC_INSPECTION,
+  type: PROCESS_TYPES.SC_QC_INSPECTION,
   version: '1.0.0',
   initialState: 'scheduled',
 

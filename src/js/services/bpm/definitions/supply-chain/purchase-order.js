@@ -20,7 +20,7 @@ export const purchaseOrderDefinition = {
   id: 'purchase_order_v1',
   name: 'Purchase Order',
   description: 'Vendor purchase order and procurement workflow',
-  type: PROCESS_TYPES.SUPPLY_CHAIN_PURCHASE_ORDER,
+  type: PROCESS_TYPES.SC_PURCHASE_ORDER,
   version: '1.0.0',
   initialState: 'draft',
 

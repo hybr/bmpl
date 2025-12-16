@@ -20,7 +20,7 @@ export const salesOrderDefinition = {
   id: 'sales_order_v1',
   name: 'Sales Order',
   description: 'Customer sales order processing and fulfillment',
-  type: PROCESS_TYPES.OPERATIONS_SALES_ORDER,
+  type: PROCESS_TYPES.OPS_SALES_ORDER,
   version: '1.0.0',
   initialState: 'draft',
 

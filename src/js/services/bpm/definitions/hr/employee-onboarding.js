@@ -15,7 +15,7 @@ export const employeeOnboardingDefinition = {
   id: 'employee_onboarding_v1',
   name: 'Employee Onboarding',
   description: 'New employee onboarding and setup workflow',
-  type: PROCESS_TYPES.HR_EMPLOYEE_ONBOARDING,
+  type: PROCESS_TYPES.HR_ONBOARDING,
   version: '1.0.0',
   initialState: 'initiated',
 

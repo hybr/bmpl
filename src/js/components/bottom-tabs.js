@@ -90,10 +90,10 @@ export class BottomTabs {
       ],
       myspace: [
         { id: 'back', label: 'Back', icon: 'arrow-back' },
-        { id: 'dashboard', label: 'Dashboard', icon: 'speedometer' },
-        { id: 'processes', label: 'Processes', icon: 'git-network' },
-        { id: 'tasks', label: 'My Tasks', icon: 'checkbox' },
-        { id: 'reports', label: 'Reports', icon: 'bar-chart' }
+        { id: 'dashboard', label: 'Dashboard', icon: 'speedometer', route: '/myspace/dashboard' },
+        { id: 'processes', label: 'Processes', icon: 'git-network', route: '/myspace/processes' },
+        { id: 'tasks', label: 'My Tasks', icon: 'checkbox', route: '/myspace/tasks' },
+        { id: 'analytics', label: 'Analytics', icon: 'analytics', route: '/myspace/analytics' }
       ],
       account: isAuthenticated ? [
         { id: 'back', label: 'Back', icon: 'arrow-back' },
@@ -269,6 +269,11 @@ export class BottomTabs {
 
     // Update visual state
     this.updateActiveSubTab(tab.id);
+
+    // If tab has a route, navigate to it (for BPM pages)
+    if (tab.route) {
+      router.navigate(tab.route);
+    }
 
     // Emit event for page content to update
     eventBus.emit('navigation:subtab-clicked', {

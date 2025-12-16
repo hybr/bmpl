@@ -264,7 +264,7 @@ export function exposeBPMGlobally() {
         async createSalesOrder(orderData) {
           return processService.createProcess({
             definitionId: 'sales_order_v1',
-            type: 'operations_sales_order',
+            type: 'ops_sales_order',
             variables: orderData
           });
         },
@@ -289,7 +289,7 @@ export function exposeBPMGlobally() {
         async createPurchaseOrder(poData) {
           return processService.createProcess({
             definitionId: 'purchase_order_v1',
-            type: 'supply_chain_purchase_order',
+            type: 'sc_purchase_order',
             variables: poData
           });
         },
@@ -297,7 +297,7 @@ export function exposeBPMGlobally() {
         async createLeaveRequest(leaveData) {
           return processService.createProcess({
             definitionId: 'leave_request_v1',
-            type: 'hr_leave_request',
+            type: 'hr_leave',
             variables: leaveData
           });
         },
@@ -305,7 +305,7 @@ export function exposeBPMGlobally() {
         async createEmployeeOnboarding(employeeData) {
           return processService.createProcess({
             definitionId: 'employee_onboarding_v1',
-            type: 'hr_employee_onboarding',
+            type: 'hr_onboarding',
             variables: employeeData
           });
         },
@@ -329,7 +329,7 @@ export function exposeBPMGlobally() {
         async createServiceRequest(serviceData) {
           return processService.createProcess({
             definitionId: 'service_request_v1',
-            type: 'operations_service_request',
+            type: 'ops_service_request',
             variables: serviceData
           });
         },
@@ -337,7 +337,7 @@ export function exposeBPMGlobally() {
         async createLead(leadData) {
           return processService.createProcess({
             definitionId: 'lead_management_v1',
-            type: 'marketing_lead',
+            type: 'mkt_lead',
             variables: leadData
           });
         },
@@ -345,7 +345,7 @@ export function exposeBPMGlobally() {
         async createVendorOnboarding(vendorData) {
           return processService.createProcess({
             definitionId: 'vendor_onboarding_v1',
-            type: 'supply_chain_vendor_onboarding',
+            type: 'sc_vendor_onboarding',
             variables: vendorData
           });
         },
@@ -354,7 +354,7 @@ export function exposeBPMGlobally() {
         async createProject(projectData) {
           return processService.createProcess({
             definitionId: 'project_initiation_v1',
-            type: 'projects_project_initiation',
+            type: 'project_initiation',
             variables: projectData
           });
         },
@@ -362,7 +362,7 @@ export function exposeBPMGlobally() {
         async createMilestone(milestoneData) {
           return processService.createProcess({
             definitionId: 'milestone_approval_v1',
-            type: 'projects_milestone_approval',
+            type: 'project_milestone',
             variables: milestoneData
           });
         },
@@ -370,7 +370,7 @@ export function exposeBPMGlobally() {
         async createCampaign(campaignData) {
           return processService.createProcess({
             definitionId: 'campaign_approval_v1',
-            type: 'marketing_campaign',
+            type: 'mkt_campaign',
             variables: campaignData
           });
         },
@@ -378,7 +378,7 @@ export function exposeBPMGlobally() {
         async createPerformanceReview(reviewData) {
           return processService.createProcess({
             definitionId: 'performance_review_v1',
-            type: 'hr_performance_review',
+            type: 'hr_performance',
             variables: reviewData
           });
         },
@@ -386,7 +386,7 @@ export function exposeBPMGlobally() {
         async createContract(contractData) {
           return processService.createProcess({
             definitionId: 'contract_approval_v1',
-            type: 'compliance_contract',
+            type: 'legal_contract',
             variables: contractData
           });
         },
@@ -402,7 +402,7 @@ export function exposeBPMGlobally() {
         async createQCInspection(inspectionData) {
           return processService.createProcess({
             definitionId: 'qc_inspection_v1',
-            type: 'supply_chain_qc_inspection',
+            type: 'sc_qc_inspection',
             variables: inspectionData
           });
         }
