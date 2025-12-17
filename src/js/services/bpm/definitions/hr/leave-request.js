@@ -1,6 +1,12 @@
 /**
  * Leave Request Process Definition
  * Employee time-off request and approval workflow
+ *
+ * Field Principles:
+ * - Auto-generated IDs are system fields (not shown in forms)
+ * - User references use userLookup with verify button
+ * - Redundant fields derived from lookups are removed
+ * - Fields are assigned to specific steps/states
  */
 
 import { PROCESS_TYPES, PROCESS_CATEGORIES, APPROVAL_LEVELS } from '../../../../config/constants.js';
@@ -21,52 +27,145 @@ export const leaveRequestDefinition = {
 
   // Variable schema
   variables: {
-    // Employee details
-    employeeId: { type: 'string', required: true },
-    employeeName: { type: 'string', required: true },
-    employeeEmail: { type: 'string', required: false },
-    department: { type: 'string', required: false },
-    position: { type: 'string', required: false },
+    // === SYSTEM FIELDS (auto-generated) ===
+    requestId: {
+      type: 'string',
+      required: false,
+      step: 'system',
+      description: 'Auto-generated request ID'
+    },
 
-    // Leave details
+    // === CREATE STEP FIELDS ===
+
+    // Employee making the request - defaults to current user
+    // In self-service mode, this is auto-filled; in HR mode, it's a lookup
+    employeeId: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      inputType: 'userLookup',
+      lookup: {
+        service: 'employees',
+        searchFields: ['email', 'name', 'employeeNumber'],
+        displayFields: ['name', 'email', 'department'],
+        placeholder: 'Search employee by name or email'
+      },
+      description: 'Employee requesting leave'
+    },
+
+    // Leave type selection
     leaveType: {
       type: 'string',
       required: true,
-      enum: ['vacation', 'sick', 'personal', 'bereavement', 'maternity', 'paternity', 'unpaid', 'other']
+      step: 'create',
+      foreignKey: {
+        options: [
+          { value: 'vacation', label: 'Vacation' },
+          { value: 'sick', label: 'Sick Leave' },
+          { value: 'personal', label: 'Personal Day' },
+          { value: 'bereavement', label: 'Bereavement' },
+          { value: 'maternity', label: 'Maternity Leave' },
+          { value: 'paternity', label: 'Paternity Leave' },
+          { value: 'unpaid', label: 'Unpaid Leave' }
+        ]
+      }
     },
-    startDate: { type: 'date', required: true },
-    endDate: { type: 'date', required: true },
-    totalDays: { type: 'number', required: true, min: 0.5 },
-    halfDay: { type: 'boolean', required: false, default: false },
-    reason: { type: 'string', required: false },
-    notes: { type: 'string', required: false },
 
-    // Balance information
-    currentBalance: { type: 'number', required: false, min: 0 },
-    balanceAfter: { type: 'number', required: false },
-    requiresUnpaid: { type: 'boolean', required: false, default: false },
+    // Date range
+    startDate: {
+      type: 'date',
+      required: true,
+      step: 'create',
+      description: 'Leave start date'
+    },
 
-    // Manager details
-    managerId: { type: 'string', required: false },
-    managerName: { type: 'string', required: false },
+    endDate: {
+      type: 'date',
+      required: true,
+      step: 'create',
+      description: 'Leave end date'
+    },
 
-    // Approval workflow
-    reviewedBy: { type: 'string', required: false },
-    approvalNotes: { type: 'string', required: false },
-    rejectionReason: { type: 'string', required: false },
-    cancellationReason: { type: 'string', required: false },
+    halfDay: {
+      type: 'boolean',
+      required: false,
+      step: 'create',
+      default: false,
+      toggleLabel: 'Half day only'
+    },
 
-    // Coverage
-    coveringEmployeeId: { type: 'string', required: false },
-    coveringEmployeeName: { type: 'string', required: false },
-    coverageNotes: { type: 'string', required: false },
+    // Reason
+    reason: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      multiline: true,
+      rows: 3,
+      placeholder: 'Reason for leave (optional)'
+    },
 
-    // Work handover
-    handoverCompleted: { type: 'boolean', required: false, default: false },
-    handoverNotes: { type: 'string', required: false },
+    // === MANAGER_REVIEW STEP FIELDS ===
 
-    // Documents
-    documents: { type: 'array', required: false, default: [] }
+    // Covering employee - User lookup
+    coveringEmployeeId: {
+      type: 'string',
+      required: false,
+      step: 'manager_review',
+      inputType: 'userLookup',
+      lookup: {
+        service: 'employees',
+        searchFields: ['email', 'name'],
+        displayFields: ['name', 'department'],
+        placeholder: 'Assign covering employee'
+      },
+      description: 'Employee covering during absence'
+    },
+
+    approvalNotes: {
+      type: 'string',
+      required: false,
+      step: 'manager_review',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Notes for approval (optional)'
+    },
+
+    // === REJECTED STEP FIELDS ===
+    rejectionReason: {
+      type: 'string',
+      required: false,
+      step: 'rejected',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Reason for rejection'
+    },
+
+    // === CANCELLED STEP FIELDS ===
+    cancellationReason: {
+      type: 'string',
+      required: false,
+      step: 'cancelled',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Reason for cancellation'
+    },
+
+    // === SYSTEM CALCULATED/TRACKING FIELDS ===
+    totalDays: { type: 'number', required: false, step: 'system', min: 0.5 },
+    currentBalance: { type: 'number', required: false, step: 'system', min: 0 },
+    balanceAfter: { type: 'number', required: false, step: 'system' },
+    requiresUnpaid: { type: 'boolean', required: false, step: 'system', default: false },
+    managerId: { type: 'string', required: false, step: 'system' },
+    reviewedBy: { type: 'string', required: false, step: 'system' },
+    coverageNotes: { type: 'string', required: false, step: 'system' },
+    handoverCompleted: { type: 'boolean', required: false, step: 'system', default: false },
+    handoverNotes: { type: 'string', required: false, step: 'system' },
+    documents: { type: 'array', required: false, step: 'system', default: [] },
+    submittedAt: { type: 'date', required: false, step: 'system' },
+    approvedAt: { type: 'date', required: false, step: 'system' },
+    rejectedAt: { type: 'date', required: false, step: 'system' },
+    cancelledAt: { type: 'date', required: false, step: 'system' },
+    completedAt: { type: 'date', required: false, step: 'system' }
   },
 
   // State definitions
@@ -78,7 +177,12 @@ export const leaveRequestDefinition = {
       transitions: ['manager_review', 'cancelled'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Leave request submitted by ${processInstance.variables.employeeName}`);
+        // Generate request ID
+        if (!processInstance.variables.requestId) {
+          const timestamp = Date.now();
+          const random = Math.floor(Math.random() * 1000);
+          processInstance.variables.requestId = `LR-${timestamp}-${random}`;
+        }
 
         processInstance.variables.submittedAt = new Date().toISOString();
 
@@ -87,28 +191,21 @@ export const leaveRequestDefinition = {
           const start = new Date(processInstance.variables.startDate);
           const end = new Date(processInstance.variables.endDate);
           const diffTime = Math.abs(end - start);
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Include both start and end
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
           processInstance.variables.totalDays = processInstance.variables.halfDay ? 0.5 : diffDays;
         }
 
-        // TODO: Check leave balance
+        console.log(`Leave request ${processInstance.variables.requestId} submitted`);
+
+        // TODO: Get employee's manager and leave balance
+        // const employee = await employeeService.getById(processInstance.variables.employeeId);
+        // processInstance.variables.managerId = employee.managerId;
         // const balance = await hrService.getLeaveBalance(
         //   processInstance.variables.employeeId,
         //   processInstance.variables.leaveType
         // );
         // processInstance.variables.currentBalance = balance;
         // processInstance.variables.balanceAfter = balance - processInstance.variables.totalDays;
-        // processInstance.variables.requiresUnpaid = balance < processInstance.variables.totalDays;
-
-        // TODO: Send notification to manager
-        // await notificationService.send({
-        //   to: processInstance.variables.managerId,
-        //   type: 'leave_request_submitted',
-        //   employeeName: processInstance.variables.employeeName,
-        //   startDate: processInstance.variables.startDate,
-        //   endDate: processInstance.variables.endDate,
-        //   totalDays: processInstance.variables.totalDays
-        // });
       },
 
       // Auto-transition to manager review
@@ -129,18 +226,7 @@ export const leaveRequestDefinition = {
       transitions: ['approved', 'rejected', 'submitted'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Leave request under manager review for ${processInstance.variables.employeeName}`);
-
-        // TODO: Check for conflicting leave requests in the team
-        // const conflicts = await hrService.checkLeaveConflicts(
-        //   processInstance.variables.department,
-        //   processInstance.variables.startDate,
-        //   processInstance.variables.endDate
-        // );
-        // if (conflicts.length > 0) {
-        //   processInstance.variables.hasConflicts = true;
-        //   processInstance.variables.conflicts = conflicts;
-        // }
+        console.log(`Leave request ${processInstance.variables.requestId} under manager review`);
       },
 
       requiredActions: [
@@ -157,7 +243,7 @@ export const leaveRequestDefinition = {
         }
       ],
 
-      // Auto-approve after 7 days if no action (emergency approval)
+      // Auto-approve after 7 days if no action
       autoTransition: {
         conditions: [
           {
@@ -177,53 +263,22 @@ export const leaveRequestDefinition = {
       transitions: ['scheduled', 'cancelled'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Leave request approved for ${processInstance.variables.employeeName}`);
+        console.log(`Leave request ${processInstance.variables.requestId} approved`);
 
-        // Record reviewer
+        processInstance.variables.approvedAt = new Date().toISOString();
+
         if (context.reviewedBy) {
           processInstance.variables.reviewedBy = context.reviewedBy;
         }
-
         if (context.approvalNotes) {
           processInstance.variables.approvalNotes = context.approvalNotes;
         }
-
         if (context.coveringEmployeeId) {
           processInstance.variables.coveringEmployeeId = context.coveringEmployeeId;
         }
 
-        if (context.coveringEmployeeName) {
-          processInstance.variables.coveringEmployeeName = context.coveringEmployeeName;
-        }
-
-        processInstance.variables.approvedAt = new Date().toISOString();
-
-        // TODO: Update leave balance
-        // await hrService.deductLeaveBalance(
-        //   processInstance.variables.employeeId,
-        //   processInstance.variables.leaveType,
-        //   processInstance.variables.totalDays
-        // );
-
-        // TODO: Send approval notification to employee
-        // await notificationService.send({
-        //   to: processInstance.variables.employeeEmail,
-        //   type: 'leave_request_approved',
-        //   startDate: processInstance.variables.startDate,
-        //   endDate: processInstance.variables.endDate,
-        //   totalDays: processInstance.variables.totalDays
-        // });
-
-        // TODO: Notify covering employee if assigned
-        // if (processInstance.variables.coveringEmployeeId) {
-        //   await notificationService.send({
-        //     to: processInstance.variables.coveringEmployeeId,
-        //     type: 'leave_coverage_assigned',
-        //     employeeName: processInstance.variables.employeeName,
-        //     startDate: processInstance.variables.startDate,
-        //     endDate: processInstance.variables.endDate
-        //   });
-        // }
+        // TODO: Deduct leave balance
+        // TODO: Send approval notification
       },
 
       // Auto-transition to scheduled
@@ -244,18 +299,10 @@ export const leaveRequestDefinition = {
       transitions: ['completed', 'cancelled'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Leave scheduled for ${processInstance.variables.employeeName}`);
+        console.log(`Leave ${processInstance.variables.requestId} scheduled`);
 
         // TODO: Add to team calendar
-        // await calendarService.addLeave({
-        //   employeeId: processInstance.variables.employeeId,
-        //   employeeName: processInstance.variables.employeeName,
-        //   startDate: processInstance.variables.startDate,
-        //   endDate: processInstance.variables.endDate,
-        //   leaveType: processInstance.variables.leaveType
-        // });
-
-        // TODO: Send reminders 1 day before leave starts
+        // TODO: Send reminders
       },
 
       // Auto-complete day after leave ends
@@ -279,25 +326,8 @@ export const leaveRequestDefinition = {
       transitions: [],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Leave completed for ${processInstance.variables.employeeName}`);
-
+        console.log(`Leave ${processInstance.variables.requestId} completed`);
         processInstance.variables.completedAt = new Date().toISOString();
-
-        // TODO: Send welcome back notification
-        // await notificationService.send({
-        //   to: processInstance.variables.employeeEmail,
-        //   type: 'welcome_back',
-        //   employeeName: processInstance.variables.employeeName
-        // });
-
-        // TODO: Update attendance records
-        // await attendanceService.recordLeave({
-        //   employeeId: processInstance.variables.employeeId,
-        //   leaveType: processInstance.variables.leaveType,
-        //   startDate: processInstance.variables.startDate,
-        //   endDate: processInstance.variables.endDate,
-        //   totalDays: processInstance.variables.totalDays
-        // });
       }
     },
 
@@ -308,28 +338,14 @@ export const leaveRequestDefinition = {
       transitions: [],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Leave request rejected for ${processInstance.variables.employeeName}`);
+        console.log(`Leave request ${processInstance.variables.requestId} rejected`);
 
-        // Record rejection reason
+        processInstance.variables.rejectedAt = new Date().toISOString();
         if (context.reason || context.rejectionReason) {
           processInstance.variables.rejectionReason = context.reason || context.rejectionReason;
         }
 
-        processInstance.variables.rejectedAt = new Date().toISOString();
-
-        // TODO: Restore leave balance if already deducted
-        // await hrService.restoreLeaveBalance(
-        //   processInstance.variables.employeeId,
-        //   processInstance.variables.leaveType,
-        //   processInstance.variables.totalDays
-        // );
-
-        // TODO: Send rejection notification to employee
-        // await notificationService.send({
-        //   to: processInstance.variables.employeeEmail,
-        //   type: 'leave_request_rejected',
-        //   reason: processInstance.variables.rejectionReason
-        // });
+        // TODO: Restore leave balance if deducted
       }
     },
 
@@ -340,40 +356,15 @@ export const leaveRequestDefinition = {
       transitions: [],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Leave request cancelled for ${processInstance.variables.employeeName}`);
+        console.log(`Leave request ${processInstance.variables.requestId} cancelled`);
 
-        // Record cancellation reason
+        processInstance.variables.cancelledAt = new Date().toISOString();
         if (context.reason || context.cancellationReason) {
           processInstance.variables.cancellationReason = context.reason || context.cancellationReason;
         }
 
-        processInstance.variables.cancelledAt = new Date().toISOString();
-
-        // TODO: Restore leave balance if already deducted
-        // if (processInstance.variables.approvedAt) {
-        //   await hrService.restoreLeaveBalance(
-        //     processInstance.variables.employeeId,
-        //     processInstance.variables.leaveType,
-        //     processInstance.variables.totalDays
-        //   );
-        // }
-
+        // TODO: Restore leave balance if deducted
         // TODO: Remove from calendar
-        // await calendarService.removeLeave({
-        //   employeeId: processInstance.variables.employeeId,
-        //   startDate: processInstance.variables.startDate,
-        //   endDate: processInstance.variables.endDate
-        // });
-
-        // TODO: Notify manager and covering employee
-        // await notificationService.send({
-        //   to: [processInstance.variables.managerId, processInstance.variables.coveringEmployeeId].filter(Boolean),
-        //   type: 'leave_cancelled',
-        //   employeeName: processInstance.variables.employeeName,
-        //   startDate: processInstance.variables.startDate,
-        //   endDate: processInstance.variables.endDate,
-        //   reason: processInstance.variables.cancellationReason
-        // });
       }
     }
   },
@@ -386,13 +377,13 @@ export const leaveRequestDefinition = {
       create: ['authenticated'],
       view: ['creator', 'employee', 'manager', 'hr', 'admin', 'owner'],
       transition: {
-        submitted_to_manager_review: ['system'], // Auto-transition
+        submitted_to_manager_review: ['system'],
         manager_review_to_approved: ['manager', 'admin', 'owner'],
         manager_review_to_rejected: ['manager', 'admin', 'owner'],
         manager_review_to_submitted: ['manager', 'admin', 'owner'],
-        approved_to_scheduled: ['system'], // Auto-transition
+        approved_to_scheduled: ['system'],
         approved_to_cancelled: ['creator', 'employee', 'manager', 'admin', 'owner'],
-        scheduled_to_completed: ['system'], // Auto-transition
+        scheduled_to_completed: ['system'],
         scheduled_to_cancelled: ['creator', 'employee', 'manager', 'admin', 'owner']
       }
     },

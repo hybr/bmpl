@@ -1,6 +1,11 @@
 /**
  * Customer Onboarding Process Definition
  * New customer verification and account setup workflow
+ *
+ * Field Principles:
+ * - Auto-generated IDs are system fields (not shown in forms)
+ * - User references use userLookup with verify button
+ * - Fields are assigned to specific steps/states
  */
 
 import { PROCESS_TYPES, PROCESS_CATEGORIES, APPROVAL_LEVELS } from '../../../../config/constants.js';
@@ -10,8 +15,6 @@ import { PROCESS_TYPES, PROCESS_CATEGORIES, APPROVAL_LEVELS } from '../../../../
  *
  * State Flow:
  * application → verification → credit_check → approved → account_setup → active | rejected
- *
- * Purpose: Onboard new customers with proper verification and account setup
  */
 export const customerOnboardingDefinition = {
   id: 'customer_onboarding_v1',
@@ -23,184 +26,341 @@ export const customerOnboardingDefinition = {
 
   // Variable schema
   variables: {
+    // === SYSTEM FIELDS (auto-generated) ===
+    applicationId: {
+      type: 'string',
+      required: false,
+      step: 'system',
+      description: 'Auto-generated application ID'
+    },
+    customerId: {
+      type: 'string',
+      required: false,
+      step: 'system',
+      description: 'Auto-generated customer ID'
+    },
+    accountNumber: {
+      type: 'string',
+      required: false,
+      step: 'system',
+      description: 'Auto-generated account number'
+    },
+
+    // === CREATE/APPLICATION STEP FIELDS ===
+
     // Customer details
-    customerName: { type: 'string', required: true },
-    legalBusinessName: { type: 'string', required: false },
+    customerName: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      placeholder: 'Customer/Company name'
+    },
+
+    legalBusinessName: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      placeholder: 'Legal business name (if different)'
+    },
+
     businessType: {
       type: 'string',
       required: true,
-      enum: ['individual', 'sole_proprietor', 'partnership', 'llc', 'corporation', 'non_profit', 'government']
-    },
-    industry: { type: 'string', required: false },
-    taxId: { type: 'string', required: false },
-    registrationNumber: { type: 'string', required: false },
-
-    // Contact information
-    primaryContactName: { type: 'string', required: true },
-    primaryContactTitle: { type: 'string', required: false },
-    primaryContactEmail: { type: 'string', required: true },
-    primaryContactPhone: { type: 'string', required: true },
-
-    // Business address
-    businessAddress: {
-      type: 'object',
-      required: true,
-      properties: {
-        street: { type: 'string', required: true },
-        street2: { type: 'string', required: false },
-        city: { type: 'string', required: true },
-        state: { type: 'string', required: true },
-        postalCode: { type: 'string', required: true },
-        country: { type: 'string', required: true }
+      step: 'create',
+      foreignKey: {
+        options: [
+          { value: 'individual', label: 'Individual' },
+          { value: 'sole_proprietor', label: 'Sole Proprietor' },
+          { value: 'partnership', label: 'Partnership' },
+          { value: 'llc', label: 'LLC' },
+          { value: 'corporation', label: 'Corporation' },
+          { value: 'non_profit', label: 'Non-Profit' },
+          { value: 'government', label: 'Government' }
+        ]
       }
     },
 
-    // Billing address (if different)
-    billingAddress: {
-      type: 'object',
+    industry: {
+      type: 'string',
       required: false,
-      properties: {
-        street: { type: 'string' },
-        street2: { type: 'string' },
-        city: { type: 'string' },
-        state: { type: 'string' },
-        postalCode: { type: 'string' },
-        country: { type: 'string' }
+      step: 'create',
+      inputType: 'entityLookup',
+      lookup: {
+        entity: 'industries',
+        searchFields: ['name', 'code'],
+        displayTemplate: '{name}',
+        placeholder: 'Select industry'
       }
     },
 
-    // Account details
+    // Primary contact - User lookup or new entry
+    primaryContactEmail: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      placeholder: 'Primary contact email'
+    },
+
+    primaryContactPhone: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      placeholder: 'Primary contact phone'
+    },
+
+    // Address
+    businessStreet: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      placeholder: 'Street address'
+    },
+
+    businessCity: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      placeholder: 'City'
+    },
+
+    businessState: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      placeholder: 'State/Province'
+    },
+
+    businessPostalCode: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      placeholder: 'Postal code'
+    },
+
+    businessCountry: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      default: 'USA',
+      foreignKey: {
+        options: ['USA', 'Canada', 'UK', 'Australia', 'Germany', 'France', 'Other']
+      }
+    },
+
+    // Account type
     accountType: {
       type: 'string',
       required: false,
-      enum: ['standard', 'premium', 'enterprise'],
-      default: 'standard'
-    },
-    requestedCreditLimit: { type: 'number', required: false, min: 0 },
-    approvedCreditLimit: { type: 'number', required: false, min: 0 },
-    paymentTerms: {
-      type: 'string',
-      required: false,
-      enum: ['net_15', 'net_30', 'net_60', 'net_90', 'immediate', 'prepaid'],
-      default: 'net_30'
-    },
-
-    // Verification details
-    verificationStatus: {
-      type: 'string',
-      required: false,
-      enum: ['pending', 'verified', 'failed']
-    },
-    verificationNotes: { type: 'string', required: false },
-    verifiedBy: { type: 'string', required: false },
-    verifiedAt: { type: 'date', required: false },
-
-    // Credit check
-    creditCheckStatus: {
-      type: 'string',
-      required: false,
-      enum: ['pending', 'approved', 'declined', 'manual_review']
-    },
-    creditScore: { type: 'number', required: false, min: 0, max: 850 },
-    creditCheckProvider: { type: 'string', required: false },
-    creditCheckNotes: { type: 'string', required: false },
-    creditCheckedAt: { type: 'date', required: false },
-
-    // Account setup
-    accountNumber: { type: 'string', required: false },
-    customerId: { type: 'string', required: false },
-    salesRepId: { type: 'string', required: false },
-    salesRepName: { type: 'string', required: false },
-    accountManagerId: { type: 'string', required: false },
-    accountManagerName: { type: 'string', required: false },
-
-    // Banking information
-    bankingDetails: {
-      type: 'object',
-      required: false,
-      properties: {
-        bankName: { type: 'string' },
-        accountNumber: { type: 'string' },
-        routingNumber: { type: 'string' },
-        accountType: { type: 'string', enum: ['checking', 'savings'] }
+      step: 'create',
+      default: 'standard',
+      foreignKey: {
+        options: [
+          { value: 'standard', label: 'Standard' },
+          { value: 'premium', label: 'Premium' },
+          { value: 'enterprise', label: 'Enterprise' }
+        ]
       }
     },
 
-    // References
-    businessReferences: {
-      type: 'array',
+    // Credit limit request
+    requestedCreditLimit: {
+      type: 'number',
       required: false,
-      items: {
-        type: 'object',
-        properties: {
-          companyName: { type: 'string' },
-          contactName: { type: 'string' },
-          contactEmail: { type: 'string' },
-          contactPhone: { type: 'string' },
-          relationship: { type: 'string' }
-        }
-      }
+      step: 'create',
+      min: 0,
+      placeholder: 'Requested credit limit ($)'
     },
 
-    // Approval workflow
-    approvedBy: { type: 'string', required: false },
-    approvalNotes: { type: 'string', required: false },
-    rejectionReason: { type: 'string', required: false },
-
-    // Account setup details
-    setupCompletedBy: { type: 'string', required: false },
-    portalAccessEnabled: { type: 'boolean', required: false, default: false },
-    welcomeEmailSent: { type: 'boolean', required: false, default: false },
-
-    // Documents
-    documents: { type: 'array', required: false, default: [] },
-
-    // Additional information
-    notes: { type: 'string', required: false },
+    // Lead source
     source: {
       type: 'string',
       required: false,
-      enum: ['website', 'referral', 'sales_team', 'partner', 'trade_show', 'other']
+      step: 'create',
+      foreignKey: {
+        options: [
+          { value: 'website', label: 'Website' },
+          { value: 'referral', label: 'Referral' },
+          { value: 'sales_team', label: 'Sales Team' },
+          { value: 'partner', label: 'Partner' },
+          { value: 'trade_show', label: 'Trade Show' },
+          { value: 'other', label: 'Other' }
+        ]
+      }
     },
-    expectedMonthlyVolume: { type: 'number', required: false, min: 0 }
+
+    // Sales rep - User lookup
+    salesRepId: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      inputType: 'userLookup',
+      lookup: {
+        service: 'employees',
+        searchFields: ['email', 'name'],
+        displayFields: ['name', 'department'],
+        placeholder: 'Assign sales representative'
+      }
+    },
+
+    // Notes
+    applicationNotes: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Additional notes'
+    },
+
+    // === VERIFICATION STEP FIELDS ===
+    taxId: {
+      type: 'string',
+      required: false,
+      step: 'verification',
+      placeholder: 'Tax ID / EIN'
+    },
+
+    registrationNumber: {
+      type: 'string',
+      required: false,
+      step: 'verification',
+      placeholder: 'Business registration number'
+    },
+
+    verificationNotes: {
+      type: 'string',
+      required: false,
+      step: 'verification',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Verification notes'
+    },
+
+    // === CREDIT_CHECK STEP FIELDS ===
+    creditCheckNotes: {
+      type: 'string',
+      required: false,
+      step: 'credit_check',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Credit check notes'
+    },
+
+    approvedCreditLimit: {
+      type: 'number',
+      required: false,
+      step: 'credit_check',
+      min: 0,
+      placeholder: 'Approved credit limit ($)'
+    },
+
+    paymentTerms: {
+      type: 'string',
+      required: false,
+      step: 'credit_check',
+      default: 'net_30',
+      foreignKey: {
+        options: [
+          { value: 'net_15', label: 'Net 15' },
+          { value: 'net_30', label: 'Net 30' },
+          { value: 'net_60', label: 'Net 60' },
+          { value: 'net_90', label: 'Net 90' },
+          { value: 'immediate', label: 'Due on Receipt' },
+          { value: 'prepaid', label: 'Prepaid' }
+        ]
+      }
+    },
+
+    approvalNotes: {
+      type: 'string',
+      required: false,
+      step: 'credit_check',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Approval notes'
+    },
+
+    // === ACCOUNT_SETUP STEP FIELDS ===
+    accountManagerId: {
+      type: 'string',
+      required: false,
+      step: 'account_setup',
+      inputType: 'userLookup',
+      lookup: {
+        service: 'employees',
+        searchFields: ['email', 'name'],
+        displayFields: ['name', 'department'],
+        placeholder: 'Assign account manager'
+      }
+    },
+
+    setupNotes: {
+      type: 'string',
+      required: false,
+      step: 'account_setup',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Account setup notes'
+    },
+
+    // === REJECTED STEP FIELDS ===
+    rejectionReason: {
+      type: 'string',
+      required: false,
+      step: 'rejected',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Reason for rejection'
+    },
+
+    // === SYSTEM TRACKING FIELDS ===
+    businessAddress: { type: 'object', required: false, step: 'system' },
+    billingAddress: { type: 'object', required: false, step: 'system' },
+    primaryContactName: { type: 'string', required: false, step: 'system' },
+    primaryContactTitle: { type: 'string', required: false, step: 'system' },
+    verificationStatus: { type: 'string', required: false, step: 'system', enum: ['pending', 'verified', 'failed'] },
+    verifiedBy: { type: 'string', required: false, step: 'system' },
+    verifiedAt: { type: 'date', required: false, step: 'system' },
+    creditCheckStatus: { type: 'string', required: false, step: 'system', enum: ['pending', 'approved', 'declined', 'manual_review'] },
+    creditScore: { type: 'number', required: false, step: 'system', min: 0, max: 850 },
+    creditCheckProvider: { type: 'string', required: false, step: 'system' },
+    creditCheckedAt: { type: 'date', required: false, step: 'system' },
+    approvedBy: { type: 'string', required: false, step: 'system' },
+    setupCompletedBy: { type: 'string', required: false, step: 'system' },
+    portalAccessEnabled: { type: 'boolean', required: false, step: 'system', default: false },
+    welcomeEmailSent: { type: 'boolean', required: false, step: 'system', default: false },
+    bankingDetails: { type: 'object', required: false, step: 'system' },
+    businessReferences: { type: 'array', required: false, step: 'system', default: [] },
+    documents: { type: 'array', required: false, step: 'system', default: [] },
+    expectedMonthlyVolume: { type: 'number', required: false, step: 'system', min: 0 },
+    applicationDate: { type: 'date', required: false, step: 'system' },
+    approvedAt: { type: 'date', required: false, step: 'system' },
+    activatedAt: { type: 'date', required: false, step: 'system' },
+    rejectedAt: { type: 'date', required: false, step: 'system' },
+    onboardingDuration: { type: 'number', required: false, step: 'system' }
   },
 
   // State definitions
   states: {
-    // Application - Customer application submitted
+    // Application
     application: {
       name: 'Application',
       description: 'Customer application submitted',
       transitions: ['verification', 'rejected'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Customer onboarding application for ${processInstance.variables.customerName}`);
+        // Generate application ID
+        if (!processInstance.variables.applicationId) {
+          const timestamp = Date.now();
+          const random = Math.floor(Math.random() * 1000);
+          processInstance.variables.applicationId = `CAPP-${timestamp}-${random}`;
+        }
 
         processInstance.variables.applicationDate = new Date().toISOString();
 
-        // Generate temporary application ID if needed
-        if (!processInstance.variables.applicationId) {
-          const timestamp = Date.now();
-          processInstance.variables.applicationId = `APP-${timestamp}`;
-        }
-
-        // TODO: Send acknowledgment email to customer
-        // await notificationService.send({
-        //   to: processInstance.variables.primaryContactEmail,
-        //   type: 'onboarding_application_received',
-        //   customerName: processInstance.variables.customerName
-        // });
-
-        // TODO: Notify onboarding team
-        // await notificationService.send({
-        //   to: 'onboarding_team',
-        //   type: 'new_customer_application',
-        //   customerName: processInstance.variables.customerName,
-        //   businessType: processInstance.variables.businessType
-        // });
+        console.log(`Customer onboarding application ${processInstance.variables.applicationId}`);
       },
 
-      // Auto-transition to verification
       autoTransition: {
         conditions: [
           {
@@ -211,22 +371,15 @@ export const customerOnboardingDefinition = {
       }
     },
 
-    // Verification - Verifying customer information
+    // Verification
     verification: {
       name: 'Verification',
       description: 'Customer information is being verified',
       transitions: ['credit_check', 'rejected', 'application'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Verifying customer information for ${processInstance.variables.customerName}`);
-
+        console.log(`Verifying customer ${processInstance.variables.customerName}`);
         processInstance.variables.verificationStatus = 'pending';
-
-        // TODO: Integrate with verification services
-        // - Verify tax ID / business registration
-        // - Check business address
-        // - Validate contact information
-        // - Review business references
       },
 
       requiredActions: [
@@ -234,20 +387,10 @@ export const customerOnboardingDefinition = {
           type: 'manual',
           role: APPROVAL_LEVELS.MEMBER,
           message: 'Verify customer information and documents',
-          actionLabel: 'Complete Verification',
-          metadata: {
-            requiresDocuments: true,
-            checklist: [
-              'Business registration verified',
-              'Tax ID validated',
-              'Contact information confirmed',
-              'Required documents received'
-            ]
-          }
+          actionLabel: 'Complete Verification'
         }
       ],
 
-      // Auto-reject after 14 days if no action
       autoTransition: {
         conditions: [
           {
@@ -260,7 +403,7 @@ export const customerOnboardingDefinition = {
       }
     },
 
-    // Credit Check - Running credit assessment
+    // Credit Check
     credit_check: {
       name: 'Credit Check',
       description: 'Credit assessment in progress',
@@ -269,35 +412,20 @@ export const customerOnboardingDefinition = {
       onEnter: async (processInstance, context) => {
         console.log(`Running credit check for ${processInstance.variables.customerName}`);
 
-        // Record verification completion
         if (context.verifiedBy) {
           processInstance.variables.verifiedBy = context.verifiedBy;
         }
         processInstance.variables.verificationStatus = 'verified';
         processInstance.variables.verifiedAt = new Date().toISOString();
-
         processInstance.variables.creditCheckStatus = 'pending';
 
-        // TODO: Integrate with credit check service
-        // const creditResult = await creditService.check({
-        //   businessName: processInstance.variables.legalBusinessName || processInstance.variables.customerName,
-        //   taxId: processInstance.variables.taxId,
-        //   address: processInstance.variables.businessAddress
-        // });
-        //
-        // processInstance.variables.creditScore = creditResult.score;
-        // processInstance.variables.creditCheckProvider = creditResult.provider;
-        // processInstance.variables.creditCheckStatus = creditResult.status;
-        // processInstance.variables.creditCheckedAt = new Date().toISOString();
-
-        // For businesses, credit check might be auto-approved for certain types
+        // Auto-approve government entities
         if (processInstance.variables.businessType === 'government') {
           processInstance.variables.creditCheckStatus = 'approved';
           processInstance.variables.creditCheckNotes = 'Government entity - auto-approved';
         }
       },
 
-      // Auto-transition based on credit check
       autoTransition: {
         conditions: [
           {
@@ -330,14 +458,13 @@ export const customerOnboardingDefinition = {
           actionLabel: 'Review Credit Check',
           metadata: {
             approveLabel: 'Approve Customer',
-            rejectLabel: 'Decline',
-            requiresCreditReview: true
+            rejectLabel: 'Decline'
           }
         }
       ]
     },
 
-    // Approved - Customer approved
+    // Approved
     approved: {
       name: 'Approved',
       description: 'Customer has been approved',
@@ -346,35 +473,21 @@ export const customerOnboardingDefinition = {
       onEnter: async (processInstance, context) => {
         console.log(`Customer ${processInstance.variables.customerName} approved`);
 
-        // Record approver
         if (context.approvedBy) {
           processInstance.variables.approvedBy = context.approvedBy;
         }
-
         if (context.approvalNotes) {
           processInstance.variables.approvalNotes = context.approvalNotes;
         }
-
-        // Set approved credit limit
         if (context.approvedCreditLimit) {
           processInstance.variables.approvedCreditLimit = context.approvedCreditLimit;
         } else if (processInstance.variables.requestedCreditLimit) {
-          // Default to requested limit if not specified
           processInstance.variables.approvedCreditLimit = processInstance.variables.requestedCreditLimit;
         }
 
         processInstance.variables.approvedAt = new Date().toISOString();
-
-        // TODO: Send approval notification to customer
-        // await notificationService.send({
-        //   to: processInstance.variables.primaryContactEmail,
-        //   type: 'customer_approved',
-        //   customerName: processInstance.variables.customerName,
-        //   creditLimit: processInstance.variables.approvedCreditLimit
-        // });
       },
 
-      // Auto-transition to account setup
       autoTransition: {
         conditions: [
           {
@@ -385,7 +498,7 @@ export const customerOnboardingDefinition = {
       }
     },
 
-    // Account Setup - Setting up customer account
+    // Account Setup
     account_setup: {
       name: 'Account Setup',
       description: 'Customer account is being set up',
@@ -396,30 +509,14 @@ export const customerOnboardingDefinition = {
 
         // Generate customer ID and account number
         const timestamp = Date.now();
-        const random = Math.floor(Math.random() * 10000);
+        const random = Math.floor(Math.random() * 1000);
 
         if (!processInstance.variables.customerId) {
           processInstance.variables.customerId = `CUST-${timestamp}-${random}`;
         }
-
         if (!processInstance.variables.accountNumber) {
           processInstance.variables.accountNumber = `ACC-${timestamp}-${random}`;
         }
-
-        // TODO: Create customer record in CRM
-        // await crmService.createCustomer({
-        //   customerId: processInstance.variables.customerId,
-        //   name: processInstance.variables.customerName,
-        //   ...processInstance.variables
-        // });
-
-        // TODO: Create account in billing system
-        // await billingService.createAccount({
-        //   accountNumber: processInstance.variables.accountNumber,
-        //   customerId: processInstance.variables.customerId,
-        //   creditLimit: processInstance.variables.approvedCreditLimit,
-        //   paymentTerms: processInstance.variables.paymentTerms
-        // });
       },
 
       requiredActions: [
@@ -427,21 +524,12 @@ export const customerOnboardingDefinition = {
           type: 'manual',
           role: APPROVAL_LEVELS.MEMBER,
           message: 'Complete account setup and enable portal access',
-          actionLabel: 'Complete Setup',
-          metadata: {
-            checklist: [
-              'Customer record created in CRM',
-              'Account created in billing system',
-              'Portal access enabled',
-              'Welcome email sent',
-              'Account manager assigned'
-            ]
-          }
+          actionLabel: 'Complete Setup'
         }
       ]
     },
 
-    // Active - Customer account active (terminal state)
+    // Active (terminal state)
     active: {
       name: 'Active',
       description: 'Customer account is active',
@@ -450,7 +538,6 @@ export const customerOnboardingDefinition = {
       onEnter: async (processInstance, context) => {
         console.log(`Customer ${processInstance.variables.customerName} is now active`);
 
-        // Record setup completion
         if (context.setupCompletedBy) {
           processInstance.variables.setupCompletedBy = context.setupCompletedBy;
         }
@@ -463,35 +550,12 @@ export const customerOnboardingDefinition = {
         if (processInstance.variables.applicationDate && processInstance.variables.activatedAt) {
           const appDate = new Date(processInstance.variables.applicationDate);
           const activeDate = new Date(processInstance.variables.activatedAt);
-          const durationMs = activeDate.getTime() - appDate.getTime();
-          processInstance.variables.onboardingDuration = durationMs;
+          processInstance.variables.onboardingDuration = activeDate.getTime() - appDate.getTime();
         }
-
-        // TODO: Send welcome email with login credentials
-        // await notificationService.send({
-        //   to: processInstance.variables.primaryContactEmail,
-        //   type: 'customer_welcome',
-        //   customerName: processInstance.variables.customerName,
-        //   accountNumber: processInstance.variables.accountNumber,
-        //   customerId: processInstance.variables.customerId,
-        //   accountManager: processInstance.variables.accountManagerName
-        // });
-
-        // TODO: Notify sales rep
-        // if (processInstance.variables.salesRepId) {
-        //   await notificationService.send({
-        //     to: processInstance.variables.salesRepId,
-        //     type: 'customer_activated',
-        //     customerName: processInstance.variables.customerName,
-        //     customerId: processInstance.variables.customerId
-        //   });
-        // }
-
-        // TODO: Create initial sales order or quote if needed
       }
     },
 
-    // Rejected - Application rejected (terminal state)
+    // Rejected (terminal state)
     rejected: {
       name: 'Rejected',
       description: 'Customer application has been rejected',
@@ -500,30 +564,11 @@ export const customerOnboardingDefinition = {
       onEnter: async (processInstance, context) => {
         console.log(`Customer application rejected for ${processInstance.variables.customerName}`);
 
-        // Record rejection reason
         if (context.reason || context.rejectionReason) {
           processInstance.variables.rejectionReason = context.reason || context.rejectionReason;
         }
 
         processInstance.variables.rejectedAt = new Date().toISOString();
-
-        // TODO: Send rejection notification with reason (if appropriate)
-        // await notificationService.send({
-        //   to: processInstance.variables.primaryContactEmail,
-        //   type: 'customer_application_rejected',
-        //   customerName: processInstance.variables.customerName,
-        //   reason: processInstance.variables.rejectionReason
-        // });
-
-        // TODO: Notify sales rep
-        // if (processInstance.variables.salesRepId) {
-        //   await notificationService.send({
-        //     to: processInstance.variables.salesRepId,
-        //     type: 'customer_application_rejected',
-        //     customerName: processInstance.variables.customerName,
-        //     reason: processInstance.variables.rejectionReason
-        //   });
-        // }
       }
     }
   },
@@ -531,17 +576,17 @@ export const customerOnboardingDefinition = {
   // Metadata
   metadata: {
     category: PROCESS_CATEGORIES.CUSTOMER,
-    tags: ['customer', 'onboarding', 'verification', 'credit_check', 'account_setup'],
+    tags: ['customer', 'onboarding', 'verification', 'credit_check'],
     permissions: {
       create: ['authenticated'],
       view: ['creator', 'sales_rep', 'manager', 'admin', 'owner'],
       transition: {
-        application_to_verification: ['system'], // Auto-transition
+        application_to_verification: ['system'],
         verification_to_credit_check: ['member', 'admin', 'owner'],
         verification_to_application: ['member', 'admin', 'owner'],
         credit_check_to_approved: ['manager', 'admin', 'owner'],
         credit_check_to_verification: ['member', 'admin', 'owner'],
-        approved_to_account_setup: ['system'], // Auto-transition
+        approved_to_account_setup: ['system'],
         account_setup_to_active: ['member', 'admin', 'owner'],
         any_to_rejected: ['manager', 'admin', 'owner']
       }

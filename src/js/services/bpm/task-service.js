@@ -7,8 +7,9 @@ import { processState } from '../../state/process-state.js';
 import { processService } from './process-service.js';
 import { conditionEvaluator } from './condition-evaluator.js';
 import { eventBus } from '../../utils/events.js';
-import { hasPermission } from '../../utils/helpers.js';
+import { hasPermission, hasApprovalPermission } from '../../utils/helpers.js';
 import { EVENTS, DOC_TYPES } from '../../config/constants.js';
+import { notificationService } from '../notification-service.js';
 
 class TaskService {
   constructor() {
@@ -71,18 +72,18 @@ class TaskService {
       // Get tasks for this process
       const processTasks = this.getProcessTasks(processInstance._id);
 
-      // Filter tasks by user role
+      // Filter tasks by user approval level
       const filteredTasks = processTasks.filter(task => {
         if (!task.role) {
           return true; // No role restriction
         }
 
         if (!userRole) {
-          return false; // User has no role
+          return false; // User has no role/approval level
         }
 
-        // Check if user has required permission
-        return hasPermission(userRole, task.role);
+        // Check if user has required approval permission
+        return hasApprovalPermission(userRole, task.role);
       });
 
       userTasks.push(...filteredTasks);
@@ -136,9 +137,9 @@ class TaskService {
         throw new Error(`Task not found: ${taskId}`);
       }
 
-      // Verify user has permission
+      // Verify user has approval permission
       if (task.role && userRole) {
-        const hasPermissionToComplete = hasPermission(userRole, task.role);
+        const hasPermissionToComplete = hasApprovalPermission(userRole, task.role);
         if (!hasPermissionToComplete) {
           throw new Error(`User does not have permission to complete this task`);
         }
@@ -182,6 +183,13 @@ class TaskService {
         completedBy: userId,
         timestamp: new Date().toISOString()
       });
+
+      // Send notification for task completion
+      try {
+        notificationService.notifyTaskCompleted(task, processInstance, userId);
+      } catch (err) {
+        console.warn('Failed to send task completion notification:', err);
+      }
 
       return result;
 

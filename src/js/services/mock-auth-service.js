@@ -100,7 +100,7 @@ class MockAuthService {
         {
           id: 'org_1',
           name: 'Demo Organization',
-          role: 'owner',
+          role: 'owner', // Default, will be updated from membership
           isSharded: false,
           shardNumber: null
         }
@@ -113,6 +113,21 @@ class MockAuthService {
 
       // Update auth state
       authState.setAuthenticated(user, accessToken, refreshToken);
+
+      // Initialize member data and get user's actual role
+      try {
+        const { memberService } = await import('./member-service.js');
+        for (const org of organizations) {
+          await memberService.getOrgMembers(org.id);
+          const membership = await memberService.getCurrentUserMembership(org.id);
+          if (membership) {
+            org.role = membership.role;
+            org.approvalLevel = membership.approvalLevel;
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to initialize member data:', err);
+      }
 
       console.log('✅ Mock: Login successful', { user, organizations });
 

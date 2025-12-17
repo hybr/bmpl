@@ -38,7 +38,9 @@ export class ProcessDetailPage extends BaseProcessDetailPage {
       <ion-header>
         <ion-toolbar>
           <ion-buttons slot="start">
-            <ion-back-button default-href="/myspace/processes"></ion-back-button>
+            <ion-button onclick="window.app.goBack()">
+              <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+            </ion-button>
           </ion-buttons>
           <ion-title>Process Details</ion-title>
           <ion-buttons slot="end">

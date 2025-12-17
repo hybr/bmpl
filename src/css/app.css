@@ -898,3 +898,752 @@ ion-tab-button {
     --padding-bottom: 0;
   }
 }
+
+/* ================================ */
+/* FORM GENERATOR STYLES */
+/* ================================ */
+
+/* Form Groups */
+.generated-form .form-group {
+  margin-bottom: 16px;
+}
+
+.generated-form .form-group > label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--ion-color-dark);
+}
+
+.generated-form .form-group > label .required {
+  color: var(--ion-color-danger);
+}
+
+.generated-form .form-help {
+  display: block;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  margin-top: 4px;
+}
+
+.generated-form .form-error {
+  font-size: 12px;
+  color: var(--ion-color-danger);
+  margin-top: 4px;
+}
+
+/* Radio Group Styles */
+.generated-form ion-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.generated-form .radio-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --background: transparent;
+}
+
+.generated-form .radio-item ion-radio {
+  margin-right: 12px;
+}
+
+/* Checkbox Group Styles */
+.generated-form .checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.generated-form .checkbox-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --background: transparent;
+}
+
+.generated-form .checkbox-item ion-checkbox {
+  margin-right: 12px;
+}
+
+/* Autocomplete Styles */
+.autocomplete-container {
+  position: relative;
+}
+
+.autocomplete-selected {
+  margin-bottom: 8px;
+}
+
+.autocomplete-selected ion-chip {
+  margin: 0;
+}
+
+.autocomplete-selected .remove-selected {
+  cursor: pointer;
+}
+
+.autocomplete-search {
+  --border-radius: 8px;
+  --box-shadow: none;
+  --background: var(--ion-color-light);
+}
+
+.autocomplete-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid var(--ion-color-light-shade);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+.autocomplete-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--ion-color-light);
+  transition: background-color 0.15s ease;
+}
+
+.autocomplete-option:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-option:hover {
+  background-color: var(--ion-color-light);
+}
+
+.autocomplete-options .no-results {
+  padding: 16px;
+  text-align: center;
+  color: var(--ion-color-medium);
+  font-style: italic;
+}
+
+/* Dropdown Styles */
+.generated-form ion-select {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+}
+
+/* Step Form Styles */
+.step-form {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* No Fields Message */
+.no-fields-message {
+  text-align: center;
+  padding: 32px;
+}
+
+.no-fields-message ion-icon {
+  font-size: 48px;
+  color: var(--ion-color-success);
+  margin-bottom: 16px;
+}
+
+.no-fields-message p {
+  color: var(--ion-color-medium);
+  margin: 0;
+}
+
+/* ===========================
+   User Lookup Component Styles
+   =========================== */
+.user-lookup-container {
+  position: relative;
+}
+
+.user-lookup-search-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.user-lookup-search-row.hidden {
+  display: none;
+}
+
+.user-lookup-input {
+  flex: 1;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+}
+
+.user-lookup-verify-btn {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  margin: 0;
+  height: 42px;
+}
+
+.user-lookup-verify-btn ion-spinner {
+  width: 18px;
+  height: 18px;
+}
+
+.user-lookup-verified {
+  margin-bottom: 8px;
+}
+
+.user-lookup-verified.hidden {
+  display: none;
+}
+
+.verified-user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: var(--ion-color-success-tint);
+  border-radius: 8px;
+  border: 1px solid var(--ion-color-success);
+}
+
+.verified-user-info ion-icon[name="checkmark-circle"] {
+  font-size: 24px;
+  color: var(--ion-color-success);
+}
+
+.verified-user-details {
+  flex: 1;
+  font-size: 14px;
+  color: var(--ion-color-dark);
+}
+
+.verified-user-details .user-field-name {
+  font-weight: 600;
+}
+
+.verified-user-details .user-field-email {
+  color: var(--ion-color-medium);
+}
+
+.clear-user-btn {
+  --padding-start: 4px;
+  --padding-end: 4px;
+  margin: 0;
+}
+
+.user-lookup-status {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.user-lookup-status.hidden {
+  display: none;
+}
+
+.user-lookup-status.error {
+  background: var(--ion-color-danger-tint);
+  color: var(--ion-color-danger-shade);
+}
+
+.user-lookup-status.warning {
+  background: var(--ion-color-warning-tint);
+  color: var(--ion-color-warning-shade);
+}
+
+.user-lookup-status.success {
+  background: var(--ion-color-success-tint);
+  color: var(--ion-color-success-shade);
+}
+
+/* ===========================
+   Entity Lookup Component Styles
+   =========================== */
+.entity-lookup-container {
+  position: relative;
+}
+
+.entity-lookup-selected {
+  margin-bottom: 8px;
+}
+
+.entity-lookup-selected ion-chip {
+  margin: 0;
+  --background: var(--ion-color-primary-tint);
+}
+
+.entity-lookup-selected .remove-entity {
+  cursor: pointer;
+}
+
+.entity-lookup-search {
+  --border-radius: 8px;
+  --box-shadow: none;
+  --background: var(--ion-color-light);
+  padding: 0;
+}
+
+.entity-lookup-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: white;
+  border: 1px solid var(--ion-color-light-shade);
+  border-radius: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.entity-lookup-results.hidden {
+  display: none;
+}
+
+.entity-lookup-loading {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.entity-lookup-no-results {
+  padding: 16px;
+  text-align: center;
+  color: var(--ion-color-medium);
+  font-size: 14px;
+}
+
+.entity-lookup-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--ion-color-light);
+  transition: background-color 0.15s;
+}
+
+.entity-lookup-item:last-child {
+  border-bottom: none;
+}
+
+.entity-lookup-item:hover {
+  background: var(--ion-color-light);
+}
+
+.entity-lookup-status {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.entity-lookup-status.hidden {
+  display: none;
+}
+
+/* ===========================
+   MySpace Page Wrapper Styles
+   =========================== */
+.myspace-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.myspace-page-container {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.myspace-page-container ion-page {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.myspace-wrapper ion-tab-bar {
+  flex-shrink: 0;
+}
+
+/* ===========================
+   Notification Bell Styles
+   =========================== */
+.notification-bell {
+  position: relative;
+  display: inline-block;
+}
+
+.notification-btn {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--ion-color-danger);
+  color: white;
+  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.notification-badge.hidden {
+  display: none;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 320px;
+  max-height: 400px;
+  background: var(--ion-background-color, #fff);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-dropdown.hidden {
+  display: none;
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ion-border-color, #e0e0e0);
+}
+
+.dropdown-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.notification-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 280px;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.notification-item:hover {
+  background: var(--ion-color-light, #f4f5f8);
+}
+
+.notification-item.unread {
+  background: rgba(var(--ion-color-primary-rgb), 0.05);
+}
+
+.notification-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ion-color-light, #f4f5f8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notification-icon ion-icon {
+  font-size: 18px;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.notification-message {
+  font-size: 13px;
+  color: var(--ion-color-medium, #92949c);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.notification-time {
+  font-size: 11px;
+  color: var(--ion-color-medium, #92949c);
+  margin-top: 4px;
+}
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--ion-color-primary);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.empty-notifications {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--ion-color-medium, #92949c);
+}
+
+.empty-notifications ion-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.dropdown-footer {
+  padding: 8px 16px;
+  border-top: 1px solid var(--ion-border-color, #e0e0e0);
+}
+
+/* ===========================
+   Organization Members Page Styles
+   =========================== */
+.org-members-page .stats-section {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.org-members-page .stat-card {
+  background: var(--ion-card-background, #fff);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.org-members-page .stat-card ion-icon {
+  font-size: 24px;
+  color: var(--ion-color-primary);
+}
+
+.org-members-page .stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.org-members-page .stat-value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.org-members-page .stat-label {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+}
+
+.org-members-page .section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--ion-text-color);
+}
+
+.org-members-page .member-item {
+  --padding-start: 0;
+  --inner-padding-end: 8px;
+}
+
+.org-members-page .avatar-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 50%;
+}
+
+.org-members-page .member-badges {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.org-members-page .member-badges ion-badge {
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.org-members-page .approval-badge {
+  text-transform: capitalize;
+}
+
+.org-members-page .modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+/* ===========================
+   Organization Detail Page Styles
+   =========================== */
+.org-detail-page .org-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.org-detail-page .org-avatar {
+  width: 72px;
+  height: 72px;
+}
+
+.org-detail-page .avatar-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 24px;
+  border-radius: 50%;
+}
+
+.org-detail-page .org-info h1 {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.org-detail-page .org-id {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+.org-detail-page .nav-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.org-detail-page .nav-card {
+  margin: 0;
+  border-radius: 12px;
+}
+
+.org-detail-page .nav-card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.org-detail-page .nav-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--ion-color-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.org-detail-page .nav-card-icon ion-icon {
+  font-size: 24px;
+  color: var(--ion-color-primary);
+}
+
+.org-detail-page .nav-card-info {
+  flex: 1;
+}
+
+.org-detail-page .nav-card-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.org-detail-page .nav-card-info p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+.org-detail-page .nav-arrow {
+  color: var(--ion-color-medium);
+}
+
+.org-detail-page .section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.org-detail-page .role-card {
+  margin: 0;
+  border-radius: 12px;
+}
+
+.org-detail-page .role-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.org-detail-page .role-info ion-badge {
+  align-self: flex-start;
+  text-transform: capitalize;
+}

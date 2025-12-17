@@ -1,6 +1,12 @@
 /**
  * Purchase Order Process Definition
  * Vendor purchase order and procurement workflow
+ *
+ * Field Principles:
+ * - Auto-generated IDs are system fields (not shown in forms)
+ * - Vendor/User references use appropriate lookups
+ * - Redundant fields derived from lookups are removed
+ * - Fields are assigned to specific steps/states
  */
 
 import { PROCESS_TYPES, PROCESS_CATEGORIES, APPROVAL_LEVELS } from '../../../../config/constants.js';
@@ -26,106 +32,275 @@ export const purchaseOrderDefinition = {
 
   // Variable schema
   variables: {
-    // PO details
-    poNumber: { type: 'string', required: true },
-    poDate: { type: 'date', required: true },
-    requestedBy: { type: 'string', required: true },
-    requestedByName: { type: 'string', required: false },
-    department: { type: 'string', required: false },
-
-    // Vendor details
-    vendorId: { type: 'string', required: true },
-    vendorName: { type: 'string', required: true },
-    vendorContact: { type: 'string', required: false },
-    vendorEmail: { type: 'string', required: false },
-    vendorPhone: { type: 'string', required: false },
-
-    // Line items
-    items: {
-      type: 'array',
-      required: true,
-      items: {
-        type: 'object',
-        properties: {
-          itemNumber: { type: 'string' },
-          description: { type: 'string', required: true },
-          quantity: { type: 'number', required: true, min: 1 },
-          unitOfMeasure: { type: 'string' },
-          unitPrice: { type: 'number', required: true, min: 0 },
-          totalPrice: { type: 'number', required: true, min: 0 },
-          requestedDeliveryDate: { type: 'date' }
-        }
-      }
-    },
-
-    // Financial details
-    subtotal: { type: 'number', required: true, min: 0 },
-    taxAmount: { type: 'number', required: false, min: 0, default: 0 },
-    shippingCost: { type: 'number', required: false, min: 0, default: 0 },
-    totalAmount: { type: 'number', required: true, min: 0 },
-    currency: { type: 'string', required: false, default: 'USD' },
-
-    // Accounting
-    glAccount: { type: 'string', required: false },
-    costCenter: { type: 'string', required: false },
-    projectCode: { type: 'string', required: false },
-    budgetCode: { type: 'string', required: false },
-
-    // Delivery details
-    deliveryAddress: {
-      type: 'object',
+    // === SYSTEM FIELDS (auto-generated) ===
+    poNumber: {
+      type: 'string',
       required: false,
-      properties: {
-        street: { type: 'string' },
-        city: { type: 'string' },
-        state: { type: 'string' },
-        postalCode: { type: 'string' },
-        country: { type: 'string' }
+      step: 'system',
+      description: 'Auto-generated PO number'
+    },
+
+    // === CREATE/DRAFT STEP FIELDS ===
+
+    // Requester - User lookup (defaults to current user)
+    requestedBy: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      inputType: 'userLookup',
+      lookup: {
+        service: 'employees',
+        searchFields: ['email', 'name'],
+        displayFields: ['name', 'department'],
+        placeholder: 'Search requester'
+      },
+      description: 'Employee requesting the purchase'
+    },
+
+    // Vendor - Entity lookup
+    vendorId: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      inputType: 'entityLookup',
+      lookup: {
+        entity: 'vendors',
+        searchFields: ['name', 'vendorCode', 'email'],
+        displayTemplate: '{name} ({vendorCode})',
+        placeholder: 'Search for vendor'
+      },
+      description: 'Vendor to purchase from'
+    },
+
+    // Department
+    department: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      inputType: 'entityLookup',
+      lookup: {
+        entity: 'departments',
+        searchFields: ['name', 'code'],
+        displayTemplate: '{name}',
+        placeholder: 'Select department'
       }
     },
-    requestedDeliveryDate: { type: 'date', required: false },
-    expectedDeliveryDate: { type: 'date', required: false },
-    actualDeliveryDate: { type: 'date', required: false },
 
-    // Approval workflow
-    approvedBy: { type: 'string', required: false },
-    approvalNotes: { type: 'string', required: false },
-    rejectionReason: { type: 'string', required: false },
+    // Items description (simplified - detailed line items in system)
+    itemsDescription: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      multiline: true,
+      rows: 4,
+      placeholder: 'Describe items to purchase (item, quantity, price)'
+    },
 
-    // Vendor communication
-    sentToVendorAt: { type: 'date', required: false },
-    acknowledgedAt: { type: 'date', required: false },
-    vendorPoNumber: { type: 'string', required: false },
-    vendorConfirmationNumber: { type: 'string', required: false },
+    // Total amount
+    totalAmount: {
+      type: 'number',
+      required: true,
+      step: 'create',
+      min: 0,
+      placeholder: 'Total amount'
+    },
 
-    // Shipping
-    trackingNumber: { type: 'string', required: false },
-    shippedAt: { type: 'date', required: false },
-    carrier: { type: 'string', required: false },
+    currency: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      default: 'USD',
+      foreignKey: {
+        options: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
+      }
+    },
 
-    // Receiving
-    receivedBy: { type: 'string', required: false },
-    receivedByName: { type: 'string', required: false },
-    receivedAt: { type: 'date', required: false },
-    receivingNotes: { type: 'string', required: false },
-    partialReceived: { type: 'boolean', required: false, default: false },
+    // Delivery date requested
+    requestedDeliveryDate: {
+      type: 'date',
+      required: false,
+      step: 'create',
+      description: 'Requested delivery date'
+    },
 
-    // Invoice matching
-    invoiceNumber: { type: 'string', required: false },
-    invoiceReceived: { type: 'boolean', required: false, default: false },
-    invoiceDate: { type: 'date', required: false },
-
-    // Documents
-    documents: { type: 'array', required: false, default: [] },
-
-    // Additional info
-    notes: { type: 'string', required: false },
+    // Urgency
     urgency: {
       type: 'string',
       required: false,
-      enum: ['normal', 'urgent', 'critical'],
-      default: 'normal'
-    }
+      step: 'create',
+      default: 'normal',
+      foreignKey: {
+        options: [
+          { value: 'normal', label: 'Normal' },
+          { value: 'urgent', label: 'Urgent' },
+          { value: 'critical', label: 'Critical' }
+        ]
+      }
+    },
+
+    // Accounting
+    budgetCode: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      inputType: 'entityLookup',
+      lookup: {
+        entity: 'budgets',
+        searchFields: ['code', 'name'],
+        displayTemplate: '{code} - {name}',
+        placeholder: 'Search budget'
+      }
+    },
+
+    costCenter: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      inputType: 'entityLookup',
+      lookup: {
+        entity: 'costCenters',
+        searchFields: ['code', 'name'],
+        displayTemplate: '{code} - {name}',
+        placeholder: 'Search cost center'
+      }
+    },
+
+    // Notes
+    notes: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Additional notes'
+    },
+
+    // === SUBMITTED STEP FIELDS ===
+    approvalNotes: {
+      type: 'string',
+      required: false,
+      step: 'submitted',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Approval notes'
+    },
+
+    // === ACKNOWLEDGED STEP FIELDS ===
+    vendorPoNumber: {
+      type: 'string',
+      required: false,
+      step: 'acknowledged',
+      placeholder: "Vendor's PO reference number"
+    },
+
+    expectedDeliveryDate: {
+      type: 'date',
+      required: false,
+      step: 'acknowledged',
+      description: 'Expected delivery date from vendor'
+    },
+
+    // === SHIPPED STEP FIELDS ===
+    trackingNumber: {
+      type: 'string',
+      required: false,
+      step: 'shipped',
+      placeholder: 'Shipping tracking number'
+    },
+
+    carrier: {
+      type: 'string',
+      required: false,
+      step: 'shipped',
+      foreignKey: {
+        options: [
+          { value: 'ups', label: 'UPS' },
+          { value: 'fedex', label: 'FedEx' },
+          { value: 'usps', label: 'USPS' },
+          { value: 'dhl', label: 'DHL' },
+          { value: 'other', label: 'Other' }
+        ]
+      }
+    },
+
+    // === RECEIVED STEP FIELDS ===
+    receivedBy: {
+      type: 'string',
+      required: false,
+      step: 'received',
+      inputType: 'userLookup',
+      lookup: {
+        service: 'employees',
+        searchFields: ['email', 'name'],
+        displayFields: ['name'],
+        placeholder: 'Who received the items?'
+      }
+    },
+
+    receivingNotes: {
+      type: 'string',
+      required: false,
+      step: 'received',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Notes about received items'
+    },
+
+    partialReceived: {
+      type: 'boolean',
+      required: false,
+      step: 'received',
+      default: false,
+      toggleLabel: 'Partial delivery (not all items received)'
+    },
+
+    // === INVOICED STEP FIELDS ===
+    invoiceNumber: {
+      type: 'string',
+      required: false,
+      step: 'invoiced',
+      placeholder: 'Vendor invoice number'
+    },
+
+    invoiceDate: {
+      type: 'date',
+      required: false,
+      step: 'invoiced',
+      description: 'Invoice date'
+    },
+
+    // === CANCELLED STEP FIELDS ===
+    cancellationReason: {
+      type: 'string',
+      required: false,
+      step: 'cancelled',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Reason for cancellation'
+    },
+
+    // === SYSTEM TRACKING FIELDS ===
+    poDate: { type: 'date', required: false, step: 'system' },
+    items: { type: 'array', required: false, step: 'system', default: [] },
+    subtotal: { type: 'number', required: false, step: 'system', min: 0 },
+    taxAmount: { type: 'number', required: false, step: 'system', min: 0, default: 0 },
+    shippingCost: { type: 'number', required: false, step: 'system', min: 0, default: 0 },
+    glAccount: { type: 'string', required: false, step: 'system' },
+    projectCode: { type: 'string', required: false, step: 'system' },
+    deliveryAddress: { type: 'object', required: false, step: 'system' },
+    actualDeliveryDate: { type: 'date', required: false, step: 'system' },
+    approvedBy: { type: 'string', required: false, step: 'system' },
+    sentToVendorAt: { type: 'date', required: false, step: 'system' },
+    acknowledgedAt: { type: 'date', required: false, step: 'system' },
+    shippedAt: { type: 'date', required: false, step: 'system' },
+    receivedAt: { type: 'date', required: false, step: 'system' },
+    invoiceReceived: { type: 'boolean', required: false, step: 'system', default: false },
+    documents: { type: 'array', required: false, step: 'system', default: [] },
+    submittedAt: { type: 'date', required: false, step: 'system' },
+    approvedAt: { type: 'date', required: false, step: 'system' },
+    closedAt: { type: 'date', required: false, step: 'system' },
+    cancelledAt: { type: 'date', required: false, step: 'system' },
+    cycleTime: { type: 'number', required: false, step: 'system' }
   },
 
   // State definitions
@@ -137,12 +312,16 @@ export const purchaseOrderDefinition = {
       transitions: ['submitted', 'cancelled'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Purchase order ${processInstance.variables.poNumber} in draft`);
-
-        // Set PO date if not provided
-        if (!processInstance.variables.poDate) {
-          processInstance.variables.poDate = new Date().toISOString();
+        // Generate PO number
+        if (!processInstance.variables.poNumber) {
+          const timestamp = Date.now();
+          const random = Math.floor(Math.random() * 1000);
+          processInstance.variables.poNumber = `PO-${timestamp}-${random}`;
         }
+
+        processInstance.variables.poDate = new Date().toISOString();
+
+        console.log(`Purchase order ${processInstance.variables.poNumber} in draft`);
       },
 
       requiredActions: [
@@ -163,12 +342,7 @@ export const purchaseOrderDefinition = {
 
       onEnter: async (processInstance, context) => {
         console.log(`Purchase order ${processInstance.variables.poNumber} submitted`);
-
         processInstance.variables.submittedAt = new Date().toISOString();
-
-        // TODO: Send notification to approvers
-        // const amount = processInstance.variables.totalAmount || 0;
-        // const requiredRole = amount >= 10000 ? APPROVAL_LEVELS.DIRECTOR : APPROVAL_LEVELS.MANAGER;
       },
 
       // Auto-transition based on amount
@@ -222,22 +396,14 @@ export const purchaseOrderDefinition = {
       onEnter: async (processInstance, context) => {
         console.log(`Purchase order ${processInstance.variables.poNumber} approved`);
 
-        // Record approver
+        processInstance.variables.approvedAt = new Date().toISOString();
+
         if (context.approvedBy) {
           processInstance.variables.approvedBy = context.approvedBy;
         }
-
         if (context.approvalNotes) {
           processInstance.variables.approvalNotes = context.approvalNotes;
         }
-
-        processInstance.variables.approvedAt = new Date().toISOString();
-
-        // TODO: Commit budget/encumber funds
-        // await budgetService.encumber({
-        //   amount: processInstance.variables.totalAmount,
-        //   budgetCode: processInstance.variables.budgetCode
-        // });
       },
 
       requiredActions: [
@@ -250,7 +416,7 @@ export const purchaseOrderDefinition = {
       ]
     },
 
-    // Sent to Vendor - PO transmitted to vendor
+    // Sent to Vendor
     sent_to_vendor: {
       name: 'Sent to Vendor',
       description: 'PO has been sent to vendor',
@@ -258,18 +424,10 @@ export const purchaseOrderDefinition = {
 
       onEnter: async (processInstance, context) => {
         console.log(`Purchase order ${processInstance.variables.poNumber} sent to vendor`);
-
         processInstance.variables.sentToVendorAt = new Date().toISOString();
-
-        // TODO: Send PO to vendor
-        // await vendorService.sendPO({
-        //   vendorEmail: processInstance.variables.vendorEmail,
-        //   poNumber: processInstance.variables.poNumber,
-        //   items: processInstance.variables.items
-        // });
       },
 
-      // Auto-escalate if not acknowledged within 3 days
+      // Auto-acknowledge after 3 days
       autoTransition: {
         conditions: [
           {
@@ -282,36 +440,27 @@ export const purchaseOrderDefinition = {
       }
     },
 
-    // Acknowledged - Vendor confirmed PO
+    // Acknowledged
     acknowledged: {
       name: 'Acknowledged',
       description: 'Vendor has acknowledged the PO',
       transitions: ['shipped'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Purchase order ${processInstance.variables.poNumber} acknowledged by vendor`);
+        console.log(`Purchase order ${processInstance.variables.poNumber} acknowledged`);
 
         processInstance.variables.acknowledgedAt = new Date().toISOString();
 
         if (context.vendorPoNumber) {
           processInstance.variables.vendorPoNumber = context.vendorPoNumber;
         }
-
         if (context.expectedDeliveryDate) {
           processInstance.variables.expectedDeliveryDate = context.expectedDeliveryDate;
         }
-
-        // TODO: Notify requester
-        // await notificationService.send({
-        //   to: processInstance.variables.requestedBy,
-        //   type: 'po_acknowledged',
-        //   poNumber: processInstance.variables.poNumber,
-        //   expectedDeliveryDate: processInstance.variables.expectedDeliveryDate
-        // });
       }
     },
 
-    // Shipped - Vendor shipped items
+    // Shipped
     shipped: {
       name: 'Shipped',
       description: 'Items have been shipped',
@@ -325,18 +474,9 @@ export const purchaseOrderDefinition = {
         if (context.trackingNumber) {
           processInstance.variables.trackingNumber = context.trackingNumber;
         }
-
         if (context.carrier) {
           processInstance.variables.carrier = context.carrier;
         }
-
-        // TODO: Notify receiving department
-        // await notificationService.send({
-        //   to: 'receiving_department',
-        //   type: 'po_shipped',
-        //   poNumber: processInstance.variables.poNumber,
-        //   trackingNumber: processInstance.variables.trackingNumber
-        // });
       },
 
       requiredActions: [
@@ -349,7 +489,7 @@ export const purchaseOrderDefinition = {
       ]
     },
 
-    // Received - Items received
+    // Received
     received: {
       name: 'Received',
       description: 'Items have been received',
@@ -359,34 +499,17 @@ export const purchaseOrderDefinition = {
         console.log(`Purchase order ${processInstance.variables.poNumber} received`);
 
         processInstance.variables.receivedAt = new Date().toISOString();
+        processInstance.variables.actualDeliveryDate = new Date().toISOString();
 
         if (context.receivedBy) {
           processInstance.variables.receivedBy = context.receivedBy;
         }
-
-        if (context.receivedByName) {
-          processInstance.variables.receivedByName = context.receivedByName;
-        }
-
         if (context.receivingNotes) {
           processInstance.variables.receivingNotes = context.receivingNotes;
         }
-
-        if (context.actualDeliveryDate) {
-          processInstance.variables.actualDeliveryDate = context.actualDeliveryDate;
-        } else {
-          processInstance.variables.actualDeliveryDate = new Date().toISOString();
+        if (context.partialReceived !== undefined) {
+          processInstance.variables.partialReceived = context.partialReceived;
         }
-
-        // TODO: Update inventory
-        // await inventoryService.receive(processInstance.variables.items);
-
-        // TODO: Notify requester and accounts payable
-        // await notificationService.send({
-        //   to: [processInstance.variables.requestedBy, 'accounts_payable'],
-        //   type: 'po_received',
-        //   poNumber: processInstance.variables.poNumber
-        // });
       },
 
       // Auto-transition to invoiced after 7 days
@@ -402,7 +525,7 @@ export const purchaseOrderDefinition = {
       }
     },
 
-    // Invoiced - Vendor invoice received
+    // Invoiced
     invoiced: {
       name: 'Invoiced',
       description: 'Vendor invoice received',
@@ -416,21 +539,9 @@ export const purchaseOrderDefinition = {
         if (context.invoiceNumber) {
           processInstance.variables.invoiceNumber = context.invoiceNumber;
         }
-
         if (context.invoiceDate) {
           processInstance.variables.invoiceDate = context.invoiceDate;
         }
-
-        // TODO: Create invoice approval process
-        // const invoiceProcess = await processService.createProcess({
-        //   definitionId: 'invoice_approval_v1',
-        //   variables: {
-        //     invoiceNumber: processInstance.variables.invoiceNumber,
-        //     vendorId: processInstance.variables.vendorId,
-        //     amount: processInstance.variables.totalAmount,
-        //     poNumber: processInstance.variables.poNumber
-        //   }
-        // });
       },
 
       // Auto-close after 30 days
@@ -446,7 +557,7 @@ export const purchaseOrderDefinition = {
       }
     },
 
-    // Closed - PO completed (terminal state)
+    // Closed (terminal state)
     closed: {
       name: 'Closed',
       description: 'Purchase order completed',
@@ -457,23 +568,16 @@ export const purchaseOrderDefinition = {
 
         processInstance.variables.closedAt = new Date().toISOString();
 
-        // Calculate PO cycle time
+        // Calculate cycle time
         if (processInstance.variables.poDate && processInstance.variables.closedAt) {
           const poDate = new Date(processInstance.variables.poDate);
           const closedDate = new Date(processInstance.variables.closedAt);
-          const durationMs = closedDate.getTime() - poDate.getTime();
-          processInstance.variables.cycleTime = durationMs;
+          processInstance.variables.cycleTime = closedDate.getTime() - poDate.getTime();
         }
-
-        // TODO: Release budget encumbrance
-        // await budgetService.release({
-        //   budgetCode: processInstance.variables.budgetCode,
-        //   amount: processInstance.variables.totalAmount
-        // });
       }
     },
 
-    // Cancelled - PO cancelled (terminal state)
+    // Cancelled (terminal state)
     cancelled: {
       name: 'Cancelled',
       description: 'Purchase order cancelled',
@@ -482,21 +586,11 @@ export const purchaseOrderDefinition = {
       onEnter: async (processInstance, context) => {
         console.log(`Purchase order ${processInstance.variables.poNumber} cancelled`);
 
-        if (context.reason || context.rejectionReason) {
-          processInstance.variables.rejectionReason = context.reason || context.rejectionReason;
-        }
-
         processInstance.variables.cancelledAt = new Date().toISOString();
 
-        // TODO: Release budget if encumbered
-        // if (processInstance.variables.approvedAt) {
-        //   await budgetService.release({
-        //     budgetCode: processInstance.variables.budgetCode,
-        //     amount: processInstance.variables.totalAmount
-        //   });
-        // }
-
-        // TODO: Notify vendor and requester
+        if (context.reason || context.cancellationReason) {
+          processInstance.variables.cancellationReason = context.reason || context.cancellationReason;
+        }
       }
     }
   },

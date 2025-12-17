@@ -8,9 +8,12 @@ import { processState } from '../../state/process-state.js';
 import { processService } from '../../services/bpm/process-service.js';
 import { taskService } from '../../services/bpm/task-service.js';
 import { authState } from '../../state/auth-state.js';
+import { orgState } from '../../state/org-state.js';
+import { memberState } from '../../state/member-state.js';
 import { eventBus } from '../../utils/events.js';
 import { router } from '../../router.js';
 import { formatDate, getRelativeTime } from '../../utils/date-utils.js';
+import { hasApprovalPermission } from '../../utils/helpers.js';
 import { EVENTS } from '../../config/constants.js';
 
 export class MySpaceTasksPage extends BasePage {
@@ -186,12 +189,38 @@ export class MySpaceTasksPage extends BasePage {
   }
 
   /**
-   * Check if user can perform action
+   * Check if user can perform action based on their approval level
+   * @param {Object} user - Current user
+   * @param {Object} action - Required action from process state
+   * @param {Object} process - Process instance
+   * @returns {boolean} Whether user can perform this action
    */
   canUserPerformAction(user, action, process) {
-    // For now, allow all actions for authenticated users
-    // TODO: Implement proper role-based permission checking
-    return true;
+    // If action has no role requirement, allow all authenticated users
+    if (!action.role) {
+      return true;
+    }
+
+    // Get user's approval level from current organization
+    const activeOrg = orgState.getActiveOrg();
+    if (!activeOrg) {
+      return false;
+    }
+
+    const userApprovalLevel = memberState.getCurrentUserRole(activeOrg.id);
+    if (!userApprovalLevel) {
+      // Try to get from membership directly
+      const members = memberState.getOrgMembers(activeOrg.id);
+      const membership = members.find(m => m.userId === user.id);
+      if (!membership) {
+        return false;
+      }
+      // Use approval level from membership, or map from role
+      const approvalLevel = membership.approvalLevel || membership.role;
+      return hasApprovalPermission(approvalLevel, action.role);
+    }
+
+    return hasApprovalPermission(userApprovalLevel, action.role);
   }
 
   /**

@@ -6,17 +6,39 @@
 import { router } from './router.js';
 import { authState } from './state/auth-state.js';
 import { orgState } from './state/org-state.js';
+import { memberState } from './state/member-state.js';
+import { navigationState } from './state/navigation-state.js';
+import { notificationState } from './state/notification-state.js';
 import { storageService } from './services/storage-service.js';
+import { memberService } from './services/member-service.js';
+import { notificationService } from './services/notification-service.js';
 import { ROUTES, ROUTES_AUTH, EVENTS } from './config/constants.js';
 import ENV from './config/env.js';
 import { eventBus } from './utils/events.js';
 import { initializeBPM, exposeBPMGlobally } from './services/bpm/index.js';
+import { BottomTabs } from './components/bottom-tabs.js';
 
 class App {
   constructor() {
     this.initialized = false;
+    this.currentPage = null;
+    this.bottomTabs = null;
     // Preload page modules using Vite's import.meta.glob
     this.pageModules = import.meta.glob('./pages/**/*.js');
+  }
+
+  /**
+   * Navigate to a route
+   */
+  navigate(path, params = {}) {
+    return router.navigate(path, params);
+  }
+
+  /**
+   * Go back in history
+   */
+  goBack() {
+    window.history.back();
   }
 
   /**
@@ -51,6 +73,9 @@ class App {
 
       // Initialize BPM Framework
       await initializeBPM();
+
+      // Initialize notification service
+      await notificationService.init();
 
       // Expose BPM globally in debug mode for testing
       if (ENV.DEBUG) {
@@ -259,6 +284,15 @@ class App {
       { requiresAuth: true, title: 'Organization Settings - V4L' }
     );
 
+    // Organization members (requires auth)
+    router.register(
+      ROUTES.ORG_MEMBERS,
+      async (params) => {
+        await this.loadPage('org-members-page', params);
+      },
+      { requiresAuth: true, title: 'Organization Members - V4L' }
+    );
+
     // BPM - Dashboard (requires auth)
     router.register(
       '/myspace/dashboard',
@@ -368,10 +402,60 @@ class App {
       // Create page instance
       const page = new PageClass(params);
 
+      // Store current page for access from templates
+      this.currentPage = page;
+
+      // Check if this is a myspace page that needs bottom tabs
+      const isMySpacePage = pageName.startsWith('myspace/');
+
       // Render page
       outlet.innerHTML = '';
-      const element = await page.render();
-      outlet.appendChild(element);
+
+      if (isMySpacePage) {
+        // Set navigation state for myspace
+        navigationState.setActiveTab('myspace');
+        navigationState.state.currentLevel = 2;
+
+        // Set active subtab based on page
+        const subTabMap = {
+          'myspace/myspace-dashboard-page': 'dashboard',
+          'myspace/myspace-processes-page': 'processes',
+          'myspace/myspace-tasks-page': 'tasks',
+          'myspace/myspace-analytics-page': 'analytics'
+        };
+        if (subTabMap[pageName]) {
+          navigationState.setActiveSubTab(subTabMap[pageName]);
+        }
+
+        // Create wrapper with page and bottom tabs
+        const wrapper = document.createElement('div');
+        wrapper.className = 'myspace-wrapper';
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.height = '100%';
+
+        // Page content container
+        const pageContainer = document.createElement('div');
+        pageContainer.className = 'myspace-page-container';
+        pageContainer.style.flex = '1';
+        pageContainer.style.overflow = 'auto';
+
+        const element = await page.render();
+        pageContainer.appendChild(element);
+        wrapper.appendChild(pageContainer);
+
+        // Add bottom tabs
+        if (!this.bottomTabs) {
+          this.bottomTabs = new BottomTabs();
+        }
+        const tabBar = this.bottomTabs.render();
+        wrapper.appendChild(tabBar);
+
+        outlet.appendChild(wrapper);
+      } else {
+        const element = await page.render();
+        outlet.appendChild(element);
+      }
 
       // Call page mounted hook
       if (page.mounted) {
@@ -388,23 +472,40 @@ class App {
    */
   setupEventListeners() {
     // Listen for auth state changes
-    eventBus.on(EVENTS.AUTH_STATE_CHANGED, (data) => {
+    eventBus.on(EVENTS.AUTH_STATE_CHANGED, async (data) => {
       console.log('Auth state changed:', data);
 
       if (data.authenticated) {
+        // Load member data for all organizations
+        await this.initializeMemberData();
+
         // Redirect to home after login
         router.navigate(ROUTES.HOME);
       } else {
+        // Clear member state on logout
+        memberState.clear();
+
+        // Clear notification state on logout
+        notificationState.clear();
+
         // Redirect to login after logout
         router.navigate(ROUTES.LOGIN);
       }
     });
 
     // Listen for organization switch
-    eventBus.on(EVENTS.ORG_SWITCHED, (data) => {
+    eventBus.on(EVENTS.ORG_SWITCHED, async (data) => {
       console.log('Organization switched:', data);
-      // Reload current page to reflect org change
-      // TODO: Implement page reload logic
+
+      // Load member data for new organization
+      if (data.to && data.to.id) {
+        try {
+          await memberService.getOrgMembers(data.to.id);
+          await memberService.getCurrentUserMembership(data.to.id);
+        } catch (err) {
+          console.warn('Failed to load member data for org:', err);
+        }
+      }
     });
 
     // Listen for errors
@@ -412,6 +513,30 @@ class App {
       console.error('App error:', error);
       this.showError(error.message || 'An error occurred');
     });
+  }
+
+  /**
+   * Initialize member data for all user organizations
+   */
+  async initializeMemberData() {
+    try {
+      const orgs = orgState.getAllOrganizations();
+
+      // If no orgs in state, try to load default demo org
+      if (orgs.length === 0) {
+        await memberService.getOrgMembers('org_1');
+        await memberService.getCurrentUserMembership('org_1');
+      } else {
+        for (const org of orgs) {
+          await memberService.getOrgMembers(org.id);
+          await memberService.getCurrentUserMembership(org.id);
+        }
+      }
+
+      console.log('Member data initialized');
+    } catch (error) {
+      console.error('Error initializing member data:', error);
+    }
   }
 
   /**
@@ -516,6 +641,9 @@ class App {
 
 // Create app instance
 const app = new App();
+
+// Expose app globally for onclick handlers in templates
+window.app = app;
 
 // Initialize app when DOM is ready
 if (document.readyState === 'loading') {

@@ -50,7 +50,9 @@ export const STORAGE_KEYS = {
   USER: 'user',
   ACTIVE_ORG_ID: 'active_org_id',
   COUCHDB_CREDENTIALS: 'couchdb_credentials',
-  APP_SETTINGS: 'app_settings'
+  APP_SETTINGS: 'app_settings',
+  ORG_MEMBERS: 'org_members',
+  NOTIFICATIONS: 'notifications'
 };
 
 // Database Names
@@ -80,6 +82,7 @@ export const ROUTES = {
   ORG_LIST: '/organizations',
   ORG_DETAIL: '/organizations/:id',
   ORG_SETTINGS: '/organizations/:id/settings',
+  ORG_MEMBERS: '/organizations/:id/members',
   PROFILE: '/profile',
   SETTINGS: '/settings'
 };
@@ -119,7 +122,17 @@ export const EVENTS = {
   // Navigation Events
   NAVIGATION_TAB_CHANGED: 'navigation:tab-changed',
   NAVIGATION_SUBTAB_CLICKED: 'navigation:subtab-clicked',
-  NAVIGATION_LEVEL_CHANGED: 'navigation:level-changed'
+  NAVIGATION_LEVEL_CHANGED: 'navigation:level-changed',
+
+  // Member Events
+  MEMBER_ADDED: 'member:added',
+  MEMBER_REMOVED: 'member:removed',
+  MEMBER_ROLE_CHANGED: 'member:role:changed',
+
+  // Notification Events
+  NOTIFICATION_RECEIVED: 'notification:received',
+  NOTIFICATION_READ: 'notification:read',
+  NOTIFICATIONS_CLEARED: 'notifications:cleared'
 };
 
 // Error Codes
@@ -252,6 +265,18 @@ export const APPROVAL_HIERARCHY = {
   [APPROVAL_LEVELS.DIRECTOR]: 4,
   [APPROVAL_LEVELS.EXECUTIVE]: 5,
   [APPROVAL_LEVELS.OWNER]: 6
+};
+
+// Notification Types
+export const NOTIFICATION_TYPES = {
+  TASK_ASSIGNED: 'task_assigned',
+  TASK_COMPLETED: 'task_completed',
+  PROCESS_CREATED: 'process_created',
+  PROCESS_COMPLETED: 'process_completed',
+  APPROVAL_NEEDED: 'approval_needed',
+  APPROVAL_RECEIVED: 'approval_received',
+  MEMBER_JOINED: 'member_joined',
+  ROLE_CHANGED: 'role_changed'
 };
 
 // Username Validation

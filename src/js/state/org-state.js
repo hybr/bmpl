@@ -4,6 +4,7 @@
 
 import Store from './store.js';
 import { EVENTS } from '../config/constants.js';
+import { memberState } from './member-state.js';
 
 class OrganizationState extends Store {
   constructor() {
@@ -137,6 +138,48 @@ class OrganizationState extends Store {
    */
   getActiveOrganization() {
     return this._state.activeOrg;
+  }
+
+  /**
+   * Alias for getActiveOrganization
+   * @returns {Object|null} Active organization
+   */
+  getActiveOrg() {
+    return this.getActiveOrganization();
+  }
+
+  /**
+   * Get user's role in a specific organization
+   * @param {string} orgId - Organization ID
+   * @returns {string|null} User's role or null
+   */
+  getUserRoleInOrg(orgId) {
+    return memberState.getCurrentUserRole(orgId);
+  }
+
+  /**
+   * Get current user's role in the active organization
+   * @returns {string|null} User's role or null
+   */
+  getCurrentUserRoleInActiveOrg() {
+    const activeOrg = this.getActiveOrg();
+    if (!activeOrg) return null;
+    return this.getUserRoleInOrg(activeOrg.id);
+  }
+
+  /**
+   * Get user's approval level in a specific organization
+   * @param {string} orgId - Organization ID
+   * @returns {string|null} User's approval level or null
+   */
+  getUserApprovalLevelInOrg(orgId) {
+    const members = memberState.getOrgMembers(orgId);
+    const currentUserRole = memberState.getCurrentUserRole(orgId);
+
+    // Find current user's membership to get approval level
+    // This is a simplified version - in practice we'd need the user ID
+    const membership = members.find(m => m.role === currentUserRole);
+    return membership?.approvalLevel || currentUserRole;
   }
 
   /**

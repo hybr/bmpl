@@ -17,6 +17,57 @@ export class BaseProcessDetailPage extends BasePage {
   }
 
   /**
+   * Render the page
+   */
+  async render() {
+    const page = document.createElement('ion-page');
+    page.className = 'process-detail-page';
+    page.innerHTML = this.getTemplate();
+    this.element = page;
+    return page;
+  }
+
+  /**
+   * Query selector helper (uses stored element)
+   */
+  querySelector(selector) {
+    return this.element ? this.element.querySelector(selector) : null;
+  }
+
+  /**
+   * Get HTML template (override in subclass)
+   */
+  getTemplate() {
+    return `
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button onclick="window.app.goBack()">
+              <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Process Details</ion-title>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content id="process-content">
+        <div id="process-header"></div>
+        <div id="process-details"></div>
+        <div id="process-timeline"></div>
+        <div id="process-actions"></div>
+        <div id="process-history"></div>
+      </ion-content>
+    `;
+  }
+
+  /**
+   * Called after page is mounted to DOM
+   */
+  async mounted() {
+    await this.onWillEnter();
+  }
+
+  /**
    * Set process ID and load
    */
   async setProcessId(processId) {

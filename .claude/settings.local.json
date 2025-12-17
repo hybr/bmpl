@@ -6,7 +6,9 @@
       "Bash(npm run dev:*)",
       "Bash(dir /s \"C:\\Users\\Faber\\b\\y\\bmpl\\src\\js\")",
       "Bash(find:*)",
-      "Bash(node --check:*)"
+      "Bash(node --check:*)",
+      "Bash(npm run build:js:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

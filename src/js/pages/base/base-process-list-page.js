@@ -20,6 +20,54 @@ export class BaseProcessListPage extends BasePage {
   }
 
   /**
+   * Render the page
+   */
+  async render() {
+    const page = document.createElement('ion-page');
+    page.className = 'process-list-page';
+    page.innerHTML = this.getTemplate();
+    this.element = page;
+    return page;
+  }
+
+  /**
+   * Query selector helper (uses stored element)
+   */
+  querySelector(selector) {
+    return this.element ? this.element.querySelector(selector) : null;
+  }
+
+  /**
+   * Called after page is mounted to DOM
+   */
+  async mounted() {
+    await this.onWillEnter();
+  }
+
+  /**
+   * Get HTML template (override in subclass)
+   */
+  getTemplate() {
+    const config = this.getListConfig();
+    return `
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>${config.title}</ion-title>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <ion-refresher slot="fixed">
+          <ion-refresher-content></ion-refresher-content>
+        </ion-refresher>
+
+        <div id="process-list" class="process-list-container"></div>
+        <div id="pagination"></div>
+      </ion-content>
+    `;
+  }
+
+  /**
    * Get filter configuration (override in subclass)
    */
   getFilterConfig() {

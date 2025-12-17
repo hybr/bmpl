@@ -2,7 +2,7 @@
  * Utility Helper Functions
  */
 
-import { ROLE_HIERARCHY } from '../config/constants.js';
+import { ROLE_HIERARCHY, APPROVAL_HIERARCHY } from '../config/constants.js';
 
 /**
  * Generate a UUID v4
@@ -47,6 +47,47 @@ export function parseDocId(docId) {
  */
 export function hasPermission(userRole, requiredRole) {
   return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
+}
+
+/**
+ * Check if user has approval permission based on approval hierarchy
+ * Maps org ROLES to APPROVAL_LEVELS for comparison
+ * @param {string} userApprovalLevel - User's approval level (from membership)
+ * @param {string} requiredApprovalLevel - Required approval level for the task
+ * @returns {boolean} Has approval permission
+ */
+export function hasApprovalPermission(userApprovalLevel, requiredApprovalLevel) {
+  // If no requirement, allow all
+  if (!requiredApprovalLevel) {
+    return true;
+  }
+
+  // If user has no approval level, deny
+  if (!userApprovalLevel) {
+    return false;
+  }
+
+  // Get hierarchy levels
+  const userLevel = APPROVAL_HIERARCHY[userApprovalLevel] || 0;
+  const requiredLevel = APPROVAL_HIERARCHY[requiredApprovalLevel] || 0;
+
+  // User level must be >= required level
+  return userLevel >= requiredLevel;
+}
+
+/**
+ * Map organization role to default approval level
+ * @param {string} orgRole - Organization role (owner, admin, member, viewer)
+ * @returns {string} Default approval level
+ */
+export function mapRoleToApprovalLevel(orgRole) {
+  const mapping = {
+    'owner': 'owner',
+    'admin': 'admin',
+    'member': 'member',
+    'viewer': 'member'
+  };
+  return mapping[orgRole] || 'member';
 }
 
 /**

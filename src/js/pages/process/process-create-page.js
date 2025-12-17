@@ -15,6 +15,31 @@ export class ProcessCreatePage extends BasePage {
   }
 
   /**
+   * Render the page
+   */
+  async render() {
+    const page = document.createElement('ion-page');
+    page.className = 'process-create-page';
+    page.innerHTML = this.getTemplate();
+    this.element = page;
+    return page;
+  }
+
+  /**
+   * Query selector helper
+   */
+  querySelector(selector) {
+    return this.element ? this.element.querySelector(selector) : null;
+  }
+
+  /**
+   * Called after page is mounted to DOM
+   */
+  async mounted() {
+    await this.onWillEnter();
+  }
+
+  /**
    * Load available process definitions
    */
   async loadDefinitions() {
@@ -83,16 +108,18 @@ export class ProcessCreatePage extends BasePage {
 
     // Create a new create page instance
     this.createPage = new BaseProcessCreatePage();
-    this.createPage.setDefinitionId(definitionId);
 
     // Show the form
-    this.showCreateForm();
+    await this.showCreateForm();
+
+    // Set definition ID after element is in DOM
+    await this.createPage.setDefinitionId(definitionId);
   }
 
   /**
    * Show create form
    */
-  showCreateForm() {
+  async showCreateForm() {
     const container = this.querySelector('#create-form-container');
     if (!container) return;
 
@@ -103,10 +130,11 @@ export class ProcessCreatePage extends BasePage {
     // Show form container
     container.style.display = 'block';
 
-    // Render form
+    // Render form content (not full page) - for embedding
     if (this.createPage) {
       container.innerHTML = '';
-      container.appendChild(this.createPage);
+      const formElement = this.createPage.renderContent();
+      container.appendChild(formElement);
     }
   }
 
@@ -134,7 +162,9 @@ export class ProcessCreatePage extends BasePage {
       <ion-header>
         <ion-toolbar>
           <ion-buttons slot="start">
-            <ion-back-button default-href="/myspace/processes"></ion-back-button>
+            <ion-button onclick="window.app.goBack()">
+              <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+            </ion-button>
           </ion-buttons>
           <ion-title>Create Process</ion-title>
         </ion-toolbar>

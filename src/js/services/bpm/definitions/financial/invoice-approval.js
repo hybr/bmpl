@@ -1,6 +1,12 @@
 /**
  * Invoice Approval Process Definition
  * Multi-level approval workflow for vendor invoices
+ *
+ * Field Principles:
+ * - Auto-generated IDs are system fields (not shown in forms)
+ * - Vendor references use entityLookup
+ * - Redundant fields derived from lookups are removed
+ * - Fields are assigned to specific steps/states
  */
 
 import { PROCESS_TYPES, PROCESS_CATEGORIES, APPROVAL_LEVELS } from '../../../../config/constants.js';
@@ -26,49 +32,188 @@ export const invoiceApprovalDefinition = {
 
   // Variable schema
   variables: {
-    // Invoice details
-    invoiceNumber: { type: 'string', required: true },
-    vendorId: { type: 'string', required: true },
-    vendorName: { type: 'string', required: true },
-    amount: { type: 'number', required: true, min: 0 },
-    currency: { type: 'string', required: false, default: 'USD' },
-    invoiceDate: { type: 'date', required: true },
-    dueDate: { type: 'date', required: true },
-
-    // Line items
-    lineItems: {
-      type: 'array',
+    // === SYSTEM FIELDS (auto-generated) ===
+    invoiceId: {
+      type: 'string',
       required: false,
-      items: {
-        type: 'object',
-        properties: {
-          description: { type: 'string' },
-          quantity: { type: 'number' },
-          unitPrice: { type: 'number' },
-          totalPrice: { type: 'number' }
-        }
+      step: 'system',
+      description: 'Auto-generated invoice ID'
+    },
+
+    // === CREATE/DRAFT STEP FIELDS ===
+
+    // Vendor - Entity lookup
+    vendorId: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      inputType: 'entityLookup',
+      lookup: {
+        entity: 'vendors',
+        searchFields: ['name', 'vendorCode', 'email'],
+        displayTemplate: '{name} ({vendorCode})',
+        placeholder: 'Search for vendor'
+      },
+      description: 'Vendor sending the invoice'
+    },
+
+    // Invoice reference number from vendor
+    vendorInvoiceNumber: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      placeholder: "Vendor's invoice number"
+    },
+
+    // Amount
+    amount: {
+      type: 'number',
+      required: true,
+      step: 'create',
+      min: 0,
+      placeholder: 'Invoice amount'
+    },
+
+    currency: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      default: 'USD',
+      foreignKey: {
+        options: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
       }
     },
 
+    // Dates
+    invoiceDate: {
+      type: 'date',
+      required: true,
+      step: 'create',
+      description: 'Invoice date'
+    },
+
+    dueDate: {
+      type: 'date',
+      required: true,
+      step: 'create',
+      description: 'Payment due date'
+    },
+
     // Accounting
-    glAccount: { type: 'string', required: false },
-    costCenter: { type: 'string', required: false },
-    projectCode: { type: 'string', required: false },
+    glAccount: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      inputType: 'entityLookup',
+      lookup: {
+        entity: 'glAccounts',
+        searchFields: ['code', 'name'],
+        displayTemplate: '{code} - {name}',
+        placeholder: 'Search GL account'
+      }
+    },
 
-    // Approval workflow
-    submittedBy: { type: 'string', required: false },
-    reviewedBy: { type: 'string', required: false },
-    approvedBy: { type: 'string', required: false },
-    approvalNotes: { type: 'string', required: false },
-    rejectionReason: { type: 'string', required: false },
+    costCenter: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      inputType: 'entityLookup',
+      lookup: {
+        entity: 'costCenters',
+        searchFields: ['code', 'name'],
+        displayTemplate: '{code} - {name}',
+        placeholder: 'Search cost center'
+      }
+    },
 
-    // Payment tracking
-    paymentMethod: { type: 'string', required: false },
-    paymentDate: { type: 'date', required: false },
-    paymentReference: { type: 'string', required: false },
+    projectCode: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      inputType: 'entityLookup',
+      lookup: {
+        entity: 'projects',
+        searchFields: ['code', 'name'],
+        displayTemplate: '{code} - {name}',
+        placeholder: 'Search project'
+      }
+    },
 
-    // Documents
-    documents: { type: 'array', required: false, default: [] }
+    // Description
+    description: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Invoice description or notes'
+    },
+
+    // === REVIEW STEP FIELDS ===
+    reviewNotes: {
+      type: 'string',
+      required: false,
+      step: 'review',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Review notes'
+    },
+
+    // === APPROVED STEP FIELDS ===
+    approvalNotes: {
+      type: 'string',
+      required: false,
+      step: 'approved',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Approval notes'
+    },
+
+    // === PROCESSED STEP FIELDS ===
+    paymentMethod: {
+      type: 'string',
+      required: false,
+      step: 'processed',
+      foreignKey: {
+        options: [
+          { value: 'ach', label: 'ACH Transfer' },
+          { value: 'wire', label: 'Wire Transfer' },
+          { value: 'check', label: 'Check' },
+          { value: 'card', label: 'Credit Card' }
+        ]
+      }
+    },
+
+    // === PAID STEP FIELDS ===
+    paymentReference: {
+      type: 'string',
+      required: false,
+      step: 'paid',
+      placeholder: 'Payment reference number'
+    },
+
+    // === REJECTED STEP FIELDS ===
+    rejectionReason: {
+      type: 'string',
+      required: false,
+      step: 'rejected',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Reason for rejection'
+    },
+
+    // === SYSTEM TRACKING FIELDS ===
+    lineItems: { type: 'array', required: false, step: 'system', default: [] },
+    submittedBy: { type: 'string', required: false, step: 'system' },
+    reviewedBy: { type: 'string', required: false, step: 'system' },
+    approvedBy: { type: 'string', required: false, step: 'system' },
+    paymentDate: { type: 'date', required: false, step: 'system' },
+    documents: { type: 'array', required: false, step: 'system', default: [] },
+    submittedAt: { type: 'date', required: false, step: 'system' },
+    approvedAt: { type: 'date', required: false, step: 'system' },
+    rejectedAt: { type: 'date', required: false, step: 'system' },
+    paidAt: { type: 'date', required: false, step: 'system' },
+    archivedAt: { type: 'date', required: false, step: 'system' }
   },
 
   // State definitions
@@ -80,7 +225,14 @@ export const invoiceApprovalDefinition = {
       transitions: ['submitted', 'rejected'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Invoice ${processInstance.variables.invoiceNumber} in draft`);
+        // Generate invoice ID
+        if (!processInstance.variables.invoiceId) {
+          const timestamp = Date.now();
+          const random = Math.floor(Math.random() * 1000);
+          processInstance.variables.invoiceId = `INV-${timestamp}-${random}`;
+        }
+
+        console.log(`Invoice ${processInstance.variables.invoiceId} in draft`);
       },
 
       requiredActions: [
@@ -100,19 +252,13 @@ export const invoiceApprovalDefinition = {
       transitions: ['review', 'approved', 'rejected'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Invoice ${processInstance.variables.invoiceNumber} submitted`);
+        console.log(`Invoice ${processInstance.variables.invoiceId} submitted`);
 
-        // Record who submitted
+        processInstance.variables.submittedAt = new Date().toISOString();
+
         if (context.submittedBy) {
           processInstance.variables.submittedBy = context.submittedBy;
         }
-
-        // TODO: Send notification to reviewers
-        // await notificationService.send({
-        //   type: 'invoice_submitted',
-        //   invoiceNumber: processInstance.variables.invoiceNumber,
-        //   amount: processInstance.variables.amount
-        // });
       },
 
       // Auto-transition based on amount
@@ -146,13 +292,7 @@ export const invoiceApprovalDefinition = {
       transitions: ['approved', 'rejected', 'draft'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Invoice ${processInstance.variables.invoiceNumber} under review`);
-
-        // TODO: Assign to appropriate approver based on amount
-        const amount = processInstance.variables.amount || 0;
-        const requiredRole = amount >= 5000 ? APPROVAL_LEVELS.DIRECTOR : APPROVAL_LEVELS.MANAGER;
-
-        // TODO: Send notification to approver
+        console.log(`Invoice ${processInstance.variables.invoiceId} under review`);
       },
 
       requiredActions: [
@@ -191,25 +331,16 @@ export const invoiceApprovalDefinition = {
       transitions: ['processed'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Invoice ${processInstance.variables.invoiceNumber} approved`);
-
-        // Record approver
-        if (context.approvedBy) {
-          processInstance.variables.approvedBy = context.approvedBy;
-        }
-
-        if (context.approvalNotes) {
-          processInstance.variables.approvalNotes = context.approvalNotes;
-        }
+        console.log(`Invoice ${processInstance.variables.invoiceId} approved`);
 
         processInstance.variables.approvedAt = new Date().toISOString();
 
-        // TODO: Send notification to finance team
-        // await notificationService.send({
-        //   type: 'invoice_approved',
-        //   invoiceNumber: processInstance.variables.invoiceNumber,
-        //   amount: processInstance.variables.amount
-        // });
+        if (context.approvedBy) {
+          processInstance.variables.approvedBy = context.approvedBy;
+        }
+        if (context.approvalNotes) {
+          processInstance.variables.approvalNotes = context.approvalNotes;
+        }
       },
 
       // Auto-transition to processed
@@ -230,10 +361,7 @@ export const invoiceApprovalDefinition = {
       transitions: ['paid'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Processing payment for invoice ${processInstance.variables.invoiceNumber}`);
-
-        // TODO: Integrate with payment system
-        // TODO: Create payment record
+        console.log(`Processing payment for invoice ${processInstance.variables.invoiceId}`);
       },
 
       requiredActions: [
@@ -253,21 +381,17 @@ export const invoiceApprovalDefinition = {
       transitions: ['archived'],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Invoice ${processInstance.variables.invoiceNumber} paid`);
+        console.log(`Invoice ${processInstance.variables.invoiceId} paid`);
 
-        // Record payment details
+        processInstance.variables.paidAt = new Date().toISOString();
+        processInstance.variables.paymentDate = new Date().toISOString();
+
         if (context.paymentMethod) {
           processInstance.variables.paymentMethod = context.paymentMethod;
         }
-
         if (context.paymentReference) {
           processInstance.variables.paymentReference = context.paymentReference;
         }
-
-        processInstance.variables.paymentDate = new Date().toISOString();
-
-        // TODO: Send payment confirmation to vendor
-        // TODO: Update accounting system
       },
 
       // Auto-archive after 7 days
@@ -290,12 +414,8 @@ export const invoiceApprovalDefinition = {
       transitions: [],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Invoice ${processInstance.variables.invoiceNumber} archived`);
-
+        console.log(`Invoice ${processInstance.variables.invoiceId} archived`);
         processInstance.variables.archivedAt = new Date().toISOString();
-
-        // TODO: Move to archive storage
-        // TODO: Update reporting systems
       }
     },
 
@@ -306,21 +426,13 @@ export const invoiceApprovalDefinition = {
       transitions: [],
 
       onEnter: async (processInstance, context) => {
-        console.log(`Invoice ${processInstance.variables.invoiceNumber} rejected`);
-
-        // Record rejection reason
-        if (context.reason || context.rejectionReason) {
-          processInstance.variables.rejectionReason = context.reason || context.rejectionReason;
-        }
+        console.log(`Invoice ${processInstance.variables.invoiceId} rejected`);
 
         processInstance.variables.rejectedAt = new Date().toISOString();
 
-        // TODO: Send rejection notification
-        // await notificationService.send({
-        //   type: 'invoice_rejected',
-        //   invoiceNumber: processInstance.variables.invoiceNumber,
-        //   reason: processInstance.variables.rejectionReason
-        // });
+        if (context.reason || context.rejectionReason) {
+          processInstance.variables.rejectionReason = context.reason || context.rejectionReason;
+        }
       }
     }
   },
@@ -334,11 +446,11 @@ export const invoiceApprovalDefinition = {
       view: ['creator', 'manager', 'admin', 'owner'],
       transition: {
         draft_to_submitted: ['creator', 'member', 'admin', 'owner'],
-        submitted_to_review: ['system'], // Auto-transition
+        submitted_to_review: ['system'],
         review_to_approved: ['manager', 'director', 'owner'],
         review_to_rejected: ['manager', 'director', 'owner'],
         review_to_draft: ['manager', 'admin', 'owner'],
-        approved_to_processed: ['system'], // Auto-transition
+        approved_to_processed: ['system'],
         processed_to_paid: ['admin', 'owner'],
         paid_to_archived: ['system', 'admin', 'owner'],
         any_to_rejected: ['manager', 'director', 'owner']

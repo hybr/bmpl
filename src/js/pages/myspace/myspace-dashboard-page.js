@@ -12,6 +12,7 @@ import { formatDate, getRelativeTime } from '../../utils/date-utils.js';
 import { LineChart } from '../../components/charts/line-chart.js';
 import { PieChart } from '../../components/charts/pie-chart.js';
 import { BarChart } from '../../components/charts/bar-chart.js';
+import { createNotificationBell } from '../../components/notification-bell.js';
 
 export class MySpaceDashboardPage extends BasePage {
   constructor() {
@@ -20,6 +21,36 @@ export class MySpaceDashboardPage extends BasePage {
     this.recentProcesses = [];
     this.myTasks = [];
     this.charts = {};
+    this.pageElement = null;
+    this.notificationBell = null;
+  }
+
+  /**
+   * Render page
+   */
+  async render() {
+    const page = document.createElement('ion-page');
+    page.className = 'myspace-dashboard-page';
+    page.innerHTML = this.getTemplate();
+    this.pageElement = page;
+    return page;
+  }
+
+  /**
+   * Query selector within page
+   */
+  querySelector(selector) {
+    return this.pageElement?.querySelector(selector);
+  }
+
+  /**
+   * Called after page is mounted
+   */
+  async mounted() {
+    // Initialize notification bell
+    this.notificationBell = createNotificationBell('notification-bell-container');
+
+    await this.onWillEnter();
   }
 
   /**
@@ -642,6 +673,7 @@ export class MySpaceDashboardPage extends BasePage {
         <ion-toolbar>
           <ion-title>Dashboard</ion-title>
           <ion-buttons slot="end">
+            <div id="notification-bell-container"></div>
             <ion-button onclick="window.app.currentPage.loadDashboard()">
               <ion-icon slot="icon-only" name="refresh"></ion-icon>
             </ion-button>

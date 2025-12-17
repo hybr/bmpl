@@ -19,44 +19,151 @@ export const expenseApprovalDefinition = {
   version: '1.0.0',
   initialState: 'submitted',
 
-  // Variable schema
+  // Variable schema with step-based field assignments
+  // step: 'create' = shown at process creation
+  // step: 'state_name' = shown when in that state
+  // step: ['state1', 'state2'] = shown in multiple states
   variables: {
-    // Employee details
-    employeeId: { type: 'string', required: true },
-    employeeName: { type: 'string', required: true },
-    employeeEmail: { type: 'string', required: false },
-    department: { type: 'string', required: false },
+    // === CREATION STEP FIELDS ===
+    // These are collected when the process is started
 
-    // Expense details
-    expenseDate: { type: 'date', required: true },
+    // Employee details (creation step)
+    employeeName: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      placeholder: 'Your full name'
+    },
+    employeeEmail: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      placeholder: 'your.email@company.com'
+    },
+    department: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      // FK with 7 or fewer options = radio buttons
+      foreignKey: {
+        options: [
+          { value: 'engineering', label: 'Engineering' },
+          { value: 'sales', label: 'Sales' },
+          { value: 'marketing', label: 'Marketing' },
+          { value: 'hr', label: 'Human Resources' },
+          { value: 'finance', label: 'Finance' },
+          { value: 'operations', label: 'Operations' }
+        ]
+      }
+    },
+
+    // Expense details (creation step)
+    expenseDate: {
+      type: 'date',
+      required: true,
+      step: 'create'
+    },
     category: {
       type: 'string',
       required: true,
-      enum: ['travel', 'meals', 'accommodation', 'supplies', 'equipment', 'other']
+      step: 'create',
+      // FK with 6 options = radio buttons
+      foreignKey: {
+        options: [
+          { value: 'travel', label: 'Travel' },
+          { value: 'meals', label: 'Meals & Entertainment' },
+          { value: 'accommodation', label: 'Accommodation' },
+          { value: 'supplies', label: 'Office Supplies' },
+          { value: 'equipment', label: 'Equipment' },
+          { value: 'other', label: 'Other' }
+        ]
+      }
     },
-    description: { type: 'string', required: true },
-    amount: { type: 'number', required: true, min: 0 },
-    currency: { type: 'string', required: false, default: 'USD' },
+    description: {
+      type: 'string',
+      required: true,
+      step: 'create',
+      multiline: true,
+      rows: 3,
+      placeholder: 'Describe the expense and its business purpose'
+    },
+    amount: {
+      type: 'number',
+      required: true,
+      step: 'create',
+      min: 0,
+      placeholder: 'Amount in USD'
+    },
+    currency: {
+      type: 'string',
+      required: false,
+      step: 'create',
+      default: 'USD',
+      // FK with few options = radio buttons
+      foreignKey: {
+        options: ['USD', 'EUR', 'GBP', 'CAD', 'AUD']
+      }
+    },
 
-    // Additional info
-    projectCode: { type: 'string', required: false },
-    clientName: { type: 'string', required: false },
-    businessPurpose: { type: 'string', required: false },
+    // === MANAGER REVIEW STEP FIELDS ===
+    // These are filled during manager review
 
-    // Approval workflow
-    managerId: { type: 'string', required: false },
-    managerName: { type: 'string', required: false },
-    reviewedBy: { type: 'string', required: false },
-    approvalNotes: { type: 'string', required: false },
-    rejectionReason: { type: 'string', required: false },
+    managerId: {
+      type: 'string',
+      required: false,
+      step: 'manager_review'
+      // Would typically be a FK to users list
+    },
+    approvalNotes: {
+      type: 'string',
+      required: false,
+      step: 'manager_review',
+      multiline: true,
+      rows: 2,
+      placeholder: 'Add notes for approval/rejection'
+    },
+    rejectionReason: {
+      type: 'string',
+      required: false,
+      step: 'manager_review',
+      multiline: true,
+      placeholder: 'Reason for rejection (if applicable)'
+    },
 
-    // Reimbursement
-    reimbursementMethod: { type: 'string', required: false, enum: ['direct_deposit', 'check', 'payroll'] },
-    reimbursementDate: { type: 'date', required: false },
-    reimbursementReference: { type: 'string', required: false },
+    // === REIMBURSEMENT STEP FIELDS ===
+    // These are filled when processing reimbursement
 
-    // Receipt documents
-    documents: { type: 'array', required: false, default: [] }
+    reimbursementMethod: {
+      type: 'string',
+      required: false,
+      step: 'approved',
+      // FK with 3 options = radio buttons
+      foreignKey: {
+        options: [
+          { value: 'direct_deposit', label: 'Direct Deposit' },
+          { value: 'check', label: 'Check' },
+          { value: 'payroll', label: 'Add to Payroll' }
+        ]
+      }
+    },
+    reimbursementReference: {
+      type: 'string',
+      required: false,
+      step: 'approved',
+      placeholder: 'Transaction reference number'
+    },
+
+    // === INTERNAL FIELDS ===
+    // These are set by the system, not shown in forms
+
+    employeeId: { type: 'string', required: false, step: 'system' },
+    managerName: { type: 'string', required: false, step: 'system' },
+    reviewedBy: { type: 'string', required: false, step: 'system' },
+    projectCode: { type: 'string', required: false, step: 'system' },
+    clientName: { type: 'string', required: false, step: 'system' },
+    businessPurpose: { type: 'string', required: false, step: 'system' },
+    reimbursementDate: { type: 'date', required: false, step: 'system' },
+    documents: { type: 'array', required: false, default: [], step: 'system' }
   },
 
   // State definitions

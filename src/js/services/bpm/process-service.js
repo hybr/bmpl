@@ -12,6 +12,7 @@ import {
   PROCESS_SYNC_STATUS,
   DOC_TYPES
 } from '../../config/constants.js';
+import { notificationService } from '../notification-service.js';
 
 class ProcessService {
   constructor() {
@@ -121,6 +122,14 @@ class ProcessService {
     // Store in state
     processState.addProcess(processInstance);
 
+    // Send notification for process creation
+    try {
+      processInstance.definition = definition; // Attach for notification
+      notificationService.notifyProcessCreated(processInstance);
+    } catch (err) {
+      console.warn('Failed to send process creation notification:', err);
+    }
+
     console.log(`Process created: ${processId} (${definition.name})`);
 
     return processInstance;
@@ -148,6 +157,17 @@ class ProcessService {
 
     // Update state
     processState.updateProcess(processId, updatedInstance);
+
+    // Check if process reached a terminal state (completed)
+    if (stateMachine.isTerminalState(targetState)) {
+      try {
+        const definition = this.getDefinition(processInstance.definitionId);
+        updatedInstance.definition = definition;
+        notificationService.notifyProcessCompleted(updatedInstance);
+      } catch (err) {
+        console.warn('Failed to send process completion notification:', err);
+      }
+    }
 
     console.log(`Process ${processId} transitioned: ${processInstance.currentState} -> ${targetState}`);
 
