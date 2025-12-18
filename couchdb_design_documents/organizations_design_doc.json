@@ -1,0 +1,27 @@
+{
+  "_id": "_design/organizations",
+  "views": {
+    "by_short_name": {
+      "map": "function (doc) { if (doc.type === 'organization') { emit(doc.shortName.toLowerCase(), doc); } }"
+    },
+    "by_full_name": {
+      "map": "function (doc) { if (doc.type === 'organization' && doc.fullName) { emit(doc.fullName.toLowerCase(), doc); } }"
+    },
+    "by_subdomain": {
+      "map": "function (doc) { if (doc.type === 'organization' && doc.subdomain) { emit(doc.subdomain.toLowerCase(), doc); } }"
+    },
+    "by_industry": {
+      "map": "function (doc) { if (doc.type === 'organization' && doc.industry) { emit(doc.industry, doc); } }"
+    },
+    "by_legal_type": {
+      "map": "function (doc) { if (doc.type === 'organization' && doc.legalType) { emit(doc.legalType, doc); } }"
+    },
+    "all_organizations": {
+      "map": "function (doc) { if (doc.type === 'organization') { emit(doc.createdAt, { _id: doc._id, shortName: doc.shortName, fullName: doc.fullName, legalType: doc.legalType, industry: doc.industry, logo: doc.logo, tagLine: doc.tagLine }); } }"
+    },
+    "searchable": {
+      "map": "function (doc) { if (doc.type === 'organization') { var terms = []; if (doc.shortName) terms.push(doc.shortName.toLowerCase()); if (doc.fullName) terms.push(doc.fullName.toLowerCase()); if (doc.subdomain) terms.push(doc.subdomain.toLowerCase()); if (doc.tagLine) { doc.tagLine.toLowerCase().split(' ').forEach(function(part) { if (part.length > 2) terms.push(part); }); } terms.forEach(function(term) { emit(term, { _id: doc._id, shortName: doc.shortName, fullName: doc.fullName, industry: doc.industry, logo: doc.logo }); }); } }"
+    }
+  },
+  "language": "javascript"
+}

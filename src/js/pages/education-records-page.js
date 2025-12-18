@@ -6,6 +6,7 @@
 import { router } from '../router.js';
 import { authState } from '../state/auth-state.js';
 import { eventBus } from '../utils/events.js';
+import '../components/organization-lookup-input.js';
 
 class EducationRecordsPage {
   constructor(params = {}) {
@@ -105,14 +106,25 @@ class EducationRecordsPage {
                   <ion-input id="education-specialization" placeholder="e.g., Computer Science"></ion-input>
                 </ion-item>
 
-                <ion-item>
-                  <ion-label position="stacked">Institute Name *</ion-label>
-                  <ion-input id="education-institute" placeholder="Enter institute name"></ion-input>
+                <ion-item lines="none">
+                  <div class="form-field-full-width">
+                    <ion-label>Institute Name *</ion-label>
+                    <organization-lookup-input
+                      name="instituteId"
+                      placeholder="Enter institute name"
+                      required
+                    ></organization-lookup-input>
+                  </div>
                 </ion-item>
 
-                <ion-item>
-                  <ion-label position="stacked">Board/University</ion-label>
-                  <ion-input id="education-board" placeholder="e.g., CBSE, State University"></ion-input>
+                <ion-item lines="none">
+                  <div class="form-field-full-width">
+                    <ion-label>Board/University</ion-label>
+                    <organization-lookup-input
+                      name="boardUniversityId"
+                      placeholder="Enter board/university name"
+                    ></organization-lookup-input>
+                  </div>
                 </ion-item>
 
                 <ion-item-divider>
@@ -332,6 +344,13 @@ class EducationRecordsPage {
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
+
+      // Clear organization lookup components
+      const instituteComponent = document.querySelector('organization-lookup-input[name="instituteId"]');
+      const boardComponent = document.querySelector('organization-lookup-input[name="boardUniversityId"]');
+
+      if (instituteComponent) instituteComponent.clearSelection();
+      if (boardComponent) boardComponent.clearSelection();
     }
   }
 
@@ -340,8 +359,6 @@ class EducationRecordsPage {
       'education-level': record.educationLevel,
       'education-subject': record.subject,
       'education-specialization': record.specialization,
-      'education-institute': record.instituteName,
-      'education-board': record.boardUniversity,
       'education-start-year': record.startYear,
       'education-end-year': record.endYear,
       'education-status': record.status,
@@ -356,15 +373,37 @@ class EducationRecordsPage {
         el.value = value;
       }
     });
+
+    // Populate organization lookup components
+    if (record.instituteId) {
+      const instituteComponent = document.querySelector('organization-lookup-input[name="instituteId"]');
+      if (instituteComponent) {
+        instituteComponent.value = record.instituteId;
+      }
+    }
+
+    if (record.boardUniversityId) {
+      const boardComponent = document.querySelector('organization-lookup-input[name="boardUniversityId"]');
+      if (boardComponent) {
+        boardComponent.value = record.boardUniversityId;
+      }
+    }
   }
 
   async saveEducation() {
+    // Get organization IDs from lookup components
+    const instituteComponent = document.querySelector('organization-lookup-input[name="instituteId"]');
+    const boardComponent = document.querySelector('organization-lookup-input[name="boardUniversityId"]');
+
     const formData = {
       educationLevel: document.getElementById('education-level')?.value,
       subject: document.getElementById('education-subject')?.value,
       specialization: document.getElementById('education-specialization')?.value,
-      instituteName: document.getElementById('education-institute')?.value,
-      boardUniversity: document.getElementById('education-board')?.value,
+      // Organization references (IDs and denormalized names)
+      instituteId: instituteComponent?.value || null,
+      instituteName: instituteComponent?.getOrganization()?.fullName || null,
+      boardUniversityId: boardComponent?.value || null,
+      boardUniversity: boardComponent?.getOrganization()?.fullName || null,
       startYear: parseInt(document.getElementById('education-start-year')?.value) || null,
       endYear: parseInt(document.getElementById('education-end-year')?.value) || null,
       status: document.getElementById('education-status')?.value,
@@ -374,7 +413,7 @@ class EducationRecordsPage {
     };
 
     // Basic validation
-    if (!formData.educationLevel || !formData.subject || !formData.instituteName || !formData.status || !formData.marksType || formData.marks === null) {
+    if (!formData.educationLevel || !formData.subject || !formData.instituteId || !formData.status || !formData.marksType || formData.marks === null) {
       alert('Please fill in all required fields');
       return;
     }

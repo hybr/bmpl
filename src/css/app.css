@@ -1647,3 +1647,232 @@ ion-tab-button {
   align-self: flex-start;
   text-transform: capitalize;
 }
+
+/* ===========================
+   Organization Lookup Component Styles
+   =========================== */
+.org-lookup-component {
+  position: relative;
+}
+
+.org-lookup-search-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.org-lookup-search-row.hidden {
+  display: none;
+}
+
+.org-lookup-input {
+  flex: 1;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+}
+
+.org-lookup-verify-btn {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  margin: 0;
+  height: 42px;
+}
+
+.org-lookup-verify-btn ion-spinner {
+  width: 18px;
+  height: 18px;
+}
+
+.org-lookup-verified {
+  margin-bottom: 8px;
+}
+
+.org-lookup-verified.hidden {
+  display: none;
+}
+
+.verified-org-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--ion-color-success-tint);
+  border-radius: 8px;
+  border: 1px solid var(--ion-color-success);
+}
+
+.verified-org-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ion-color-light);
+}
+
+.verified-org-logo .org-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.verified-org-logo .org-logo-img.hidden {
+  display: none;
+}
+
+.verified-org-logo .org-logo-placeholder {
+  font-size: 24px;
+  color: var(--ion-color-medium);
+}
+
+.verified-org-logo .org-logo-placeholder.hidden {
+  display: none;
+}
+
+.verified-org-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.verified-org-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ion-color-dark);
+}
+
+.verified-org-details {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+.clear-org-btn {
+  --padding-start: 4px;
+  --padding-end: 4px;
+  margin: 0;
+}
+
+.org-lookup-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: white;
+  border: 1px solid var(--ion-color-light-shade);
+  border-radius: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.org-lookup-results.hidden {
+  display: none;
+}
+
+.org-lookup-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--ion-color-light);
+  transition: background 0.15s;
+}
+
+.org-lookup-result-item:hover {
+  background: var(--ion-color-light);
+}
+
+.org-lookup-result-item:last-child {
+  border-bottom: none;
+}
+
+.org-lookup-result-item .result-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ion-color-light);
+}
+
+.org-lookup-result-item .result-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.org-lookup-result-item .result-logo ion-icon {
+  font-size: 20px;
+  color: var(--ion-color-medium);
+}
+
+.org-lookup-result-item .result-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.org-lookup-result-item .result-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--ion-color-dark);
+}
+
+.org-lookup-result-item .result-industry {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+}
+
+.org-lookup-no-results {
+  padding: 16px;
+  text-align: center;
+  color: var(--ion-color-medium);
+  font-size: 14px;
+}
+
+.org-lookup-status {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.org-lookup-status.hidden {
+  display: none;
+}
+
+.org-lookup-status.error {
+  background: var(--ion-color-danger-tint);
+  color: var(--ion-color-danger-shade);
+}
+
+.org-lookup-status.warning {
+  background: var(--ion-color-warning-tint);
+  color: var(--ion-color-warning-shade);
+}
+
+.org-lookup-status.success {
+  background: var(--ion-color-success-tint);
+  color: var(--ion-color-success-shade);
+}
+
+/* Form field full width wrapper for organization lookup inside ion-item */
+.form-field-full-width {
+  width: 100%;
+  padding: 8px 0;
+}
+
+.form-field-full-width ion-label {
+  margin-bottom: 8px;
+  display: block;
+}
