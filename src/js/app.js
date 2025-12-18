@@ -12,7 +12,10 @@ import { notificationState } from './state/notification-state.js';
 import { storageService } from './services/storage-service.js';
 import { memberService } from './services/member-service.js';
 import { notificationService } from './services/notification-service.js';
-import { ROUTES, ROUTES_AUTH, EVENTS } from './config/constants.js';
+import { syncConfigService } from './services/sync-config.js';
+import { processSync } from './services/bpm/process-sync.js';
+import { userPersistence } from './services/user-persistence.js';
+import { ROUTES, ROUTES_AUTH, EVENTS, COUCHDB_CONFIG } from './config/constants.js';
 import ENV from './config/env.js';
 import { eventBus } from './utils/events.js';
 import { initializeBPM, exposeBPMGlobally } from './services/bpm/index.js';
@@ -77,9 +80,16 @@ class App {
       // Initialize notification service
       await notificationService.init();
 
+      // Initialize CouchDB sync configuration
+      await this.initializeCouchDBSync();
+
       // Expose BPM globally in debug mode for testing
       if (ENV.DEBUG) {
         exposeBPMGlobally();
+        // Also expose sync services for debugging
+        window.syncConfigService = syncConfigService;
+        window.processSync = processSync;
+        window.userPersistence = userPersistence;
       }
 
       this.initialized = true;
@@ -246,6 +256,23 @@ class App {
         await this.loadPage('tabs-page', { tab: 'account' });
       },
       { title: 'Account - V4L' }
+    );
+
+    // Account sub-routes (user processes/records)
+    router.register(
+      ROUTES.ACCOUNT_PROCESSES,
+      async () => {
+        await this.loadPage('tabs-page', { tab: 'account', subTab: 'processes' });
+      },
+      { requiresAuth: true, title: 'My Records - V4L' }
+    );
+
+    router.register(
+      ROUTES.ACCOUNT_EDUCATION,
+      async () => {
+        await this.loadPage('education-records-page');
+      },
+      { requiresAuth: true, title: 'Education Records - V4L' }
     );
 
     // Dashboard (requires auth) - redirect to home
@@ -502,8 +529,18 @@ class App {
         try {
           await memberService.getOrgMembers(data.to.id);
           await memberService.getCurrentUserMembership(data.to.id);
+
+          // Re-initialize sync for new organization
+          if (syncConfigService.isConnected) {
+            await syncConfigService.ensureDatabase(data.to.id);
+            const remoteUrl = syncConfigService.getRemoteDbUrl(data.to.id);
+            await processSync.switchOrganization(data.to.id, remoteUrl, syncConfigService.credentials);
+            console.log('Sync switched to org:', data.to.id);
+          } else {
+            await processSync.switchOrganization(data.to.id, null, null);
+          }
         } catch (err) {
-          console.warn('Failed to load member data for org:', err);
+          console.warn('Failed to load member data or sync for org:', err);
         }
       }
     });
@@ -536,6 +573,63 @@ class App {
       console.log('Member data initialized');
     } catch (error) {
       console.error('Error initializing member data:', error);
+    }
+  }
+
+  /**
+   * Initialize CouchDB sync
+   */
+  async initializeCouchDBSync() {
+    try {
+      // Initialize sync config service
+      await syncConfigService.initialize();
+
+      // Initialize user persistence (PouchDB)
+      await userPersistence.ensureInitialized();
+
+      // Check if we have an active organization
+      const activeOrg = orgState.getActiveOrganization();
+
+      if (syncConfigService.isConnected) {
+        // Setup user database sync
+        const userDbUrl = `${COUCHDB_CONFIG.DIRECT_URL}/bmpl_users`;
+        await userPersistence.setupSync(userDbUrl, syncConfigService.credentials);
+        console.log('User sync started');
+
+        if (activeOrg) {
+          // Ensure remote database exists for org
+          await syncConfigService.ensureDatabase(activeOrg.id);
+
+          // Get remote database URL
+          const remoteUrl = syncConfigService.getRemoteDbUrl(activeOrg.id);
+
+          // Initialize process sync with remote URL
+          await processSync.initialize(activeOrg.id, remoteUrl, syncConfigService.credentials);
+
+          console.log('CouchDB sync initialized for org:', activeOrg.id);
+        }
+
+        this.showToast('Database sync connected', 'success');
+      } else {
+        console.log('CouchDB not available, running in offline mode');
+        // Initialize local-only sync
+        if (activeOrg) {
+          await processSync.initialize(activeOrg.id, null, null);
+        }
+      }
+
+      // Listen for sync state changes
+      eventBus.on(EVENTS.SYNC_STATE_CHANGED, (data) => {
+        if (data.connected) {
+          console.log('CouchDB connected');
+        } else {
+          console.log('CouchDB disconnected:', data.error);
+        }
+      });
+
+    } catch (error) {
+      console.error('Error initializing CouchDB sync:', error);
+      // Continue without sync - local storage will still work
     }
   }
 

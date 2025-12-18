@@ -10,6 +10,8 @@
  *   - >50 options: Autocomplete/searchable
  */
 
+import { userLookupService } from '../components/user-lookup-input.js';
+
 // Cache for FK options (loaded from services)
 const fkOptionsCache = new Map();
 
@@ -523,71 +525,51 @@ function createUserLookupInput(fieldName, fieldSchema, value) {
     statusMessage.className = 'user-lookup-status hidden';
 
     try {
-      // Dispatch custom event for parent to handle the lookup
-      const lookupEvent = new CustomEvent('userLookup', {
-        bubbles: true,
-        detail: {
-          fieldName,
-          searchValue,
-          service: lookupConfig.service || 'users',
-          searchFields: lookupConfig.searchFields || ['email', 'username', 'phone'],
-          callback: (result) => {
-            verifyBtn.disabled = false;
-            verifyBtn.innerHTML = '<ion-icon name="search"></ion-icon> Verify';
+      // Use userLookupService to verify the user
+      const result = await userLookupService.verify(searchValue);
 
-            if (result.success && result.user) {
-              // Store userId
-              hiddenInput.value = result.user.id || result.user._id;
-              hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+      verifyBtn.disabled = false;
+      verifyBtn.innerHTML = '<ion-icon name="search"></ion-icon> Verify';
 
-              // Display verified user info
-              const displayInfo = displayFields.map(field => {
-                const val = result.user[field];
-                return val ? `<span class="user-field-${field}">${val}</span>` : '';
-              }).filter(Boolean).join(' • ');
+      if (result.success && result.user) {
+        // Store userId
+        hiddenInput.value = result.user.id || result.user._id;
+        hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
 
-              verifiedDisplay.innerHTML = `
-                <div class="verified-user-info">
-                  <ion-icon name="checkmark-circle" color="success"></ion-icon>
-                  <div class="verified-user-details">${displayInfo}</div>
-                  <ion-button fill="clear" size="small" class="clear-user-btn">
-                    <ion-icon name="close-circle"></ion-icon>
-                  </ion-button>
-                </div>
-              `;
-              verifiedDisplay.classList.remove('hidden');
-              searchRow.classList.add('hidden');
-              statusMessage.className = 'user-lookup-status hidden';
+        // Display verified user info
+        const displayInfo = displayFields.map(field => {
+          const val = result.user[field];
+          return val ? `<span class="user-field-${field}">${val}</span>` : '';
+        }).filter(Boolean).join(' • ');
 
-              // Handle clear button
-              const clearBtn = verifiedDisplay.querySelector('.clear-user-btn');
-              if (clearBtn) {
-                clearBtn.addEventListener('click', () => {
-                  hiddenInput.value = '';
-                  hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
-                  verifiedDisplay.classList.add('hidden');
-                  searchRow.classList.remove('hidden');
-                  searchInput.value = '';
-                });
-              }
-            } else {
-              statusMessage.textContent = result.message || 'User not found';
-              statusMessage.className = 'user-lookup-status error';
-            }
-          }
+        verifiedDisplay.innerHTML = `
+          <div class="verified-user-info">
+            <ion-icon name="checkmark-circle" color="success"></ion-icon>
+            <div class="verified-user-details">${displayInfo}</div>
+            <ion-button fill="clear" size="small" class="clear-user-btn">
+              <ion-icon name="close-circle"></ion-icon>
+            </ion-button>
+          </div>
+        `;
+        verifiedDisplay.classList.remove('hidden');
+        searchRow.classList.add('hidden');
+        statusMessage.className = 'user-lookup-status hidden';
+
+        // Handle clear button
+        const clearBtn = verifiedDisplay.querySelector('.clear-user-btn');
+        if (clearBtn) {
+          clearBtn.addEventListener('click', () => {
+            hiddenInput.value = '';
+            hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+            verifiedDisplay.classList.add('hidden');
+            searchRow.classList.remove('hidden');
+            searchInput.value = '';
+          });
         }
-      });
-      container.dispatchEvent(lookupEvent);
-
-      // If no handler catches the event, simulate a lookup (for demo)
-      setTimeout(() => {
-        if (verifyBtn.disabled) {
-          verifyBtn.disabled = false;
-          verifyBtn.innerHTML = '<ion-icon name="search"></ion-icon> Verify';
-          statusMessage.textContent = 'Lookup service not configured';
-          statusMessage.className = 'user-lookup-status warning';
-        }
-      }, 3000);
+      } else {
+        statusMessage.textContent = result.message || 'User not found';
+        statusMessage.className = 'user-lookup-status error';
+      }
 
     } catch (error) {
       verifyBtn.disabled = false;

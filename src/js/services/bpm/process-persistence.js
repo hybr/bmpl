@@ -5,36 +5,10 @@
 
 import { eventBus } from '../../utils/events.js';
 import { EVENTS, DOC_TYPES, PROCESS_SYNC_STATUS } from '../../config/constants.js';
+import { getPouchDB } from '../pouchdb-init.js';
 
-// Dynamic PouchDB imports to handle Vite bundling issues
+// PouchDB reference (set after initialization)
 let PouchDB = null;
-let PouchDBFind = null;
-let initialized = false;
-
-async function initPouchDB() {
-  if (initialized) return;
-
-  try {
-    // Dynamic import to avoid Vite bundling issues
-    const pouchModule = await import('pouchdb');
-    const findModule = await import('pouchdb-find');
-
-    // Handle default exports properly
-    PouchDB = pouchModule.default || pouchModule;
-    PouchDBFind = findModule.default || findModule;
-
-    // Plugin the find module
-    if (PouchDB && PouchDBFind && typeof PouchDB.plugin === 'function') {
-      PouchDB.plugin(PouchDBFind);
-    }
-
-    initialized = true;
-    console.log('PouchDB initialized successfully');
-  } catch (error) {
-    console.error('Failed to initialize PouchDB:', error);
-    throw error;
-  }
-}
 
 class ProcessPersistence {
   constructor() {
@@ -48,7 +22,9 @@ class ProcessPersistence {
    */
   async ensureInitialized() {
     if (!this.initPromise) {
-      this.initPromise = initPouchDB();
+      this.initPromise = getPouchDB().then(pdb => {
+        PouchDB = pdb;
+      });
     }
     await this.initPromise;
   }

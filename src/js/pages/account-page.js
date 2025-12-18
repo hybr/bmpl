@@ -12,7 +12,12 @@ import { EVENTS } from '../config/constants.js';
 export class AccountPage {
   constructor(params = {}) {
     this.params = params;
-    this.currentView = authState.isAuth() ? 'profile' : 'login';
+    // Use subTab from params if provided, otherwise default based on auth state
+    if (params.subTab && authState.isAuth()) {
+      this.currentView = params.subTab;
+    } else {
+      this.currentView = authState.isAuth() ? 'profile' : 'login';
+    }
     this.setupEventListeners();
   }
 
@@ -82,6 +87,7 @@ export class AccountPage {
     // Authenticated views
     const authContentMap = {
       profile: this.getProfileContent(),
+      processes: this.getProcessesContent(),
       settings: this.getSettingsContent(),
       notifications: this.getNotificationsContent(),
       logout: this.getLogoutContent()
@@ -281,6 +287,82 @@ export class AccountPage {
             Save Changes
           </ion-button>
         </div>
+
+        <ion-list class="logout-section" style="margin-bottom: 80px;">
+          <ion-item button id="profile-logout-button" color="danger">
+            <ion-icon name="log-out" slot="start"></ion-icon>
+            <ion-label>Logout</ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
+    `;
+  }
+
+  /**
+   * Get processes content (authenticated) - User self-service processes
+   */
+  getProcessesContent() {
+    return `
+      <div class="content-section">
+        <h2>My Records</h2>
+        <p class="section-description">Manage your personal records and information</p>
+
+        <ion-list>
+          <ion-list-header>
+            <ion-label>Personal Records</ion-label>
+          </ion-list-header>
+
+          <ion-item button id="education-records-btn" detail="true">
+            <ion-icon name="school" slot="start" color="primary"></ion-icon>
+            <ion-label>
+              <h3>Education Records</h3>
+              <p>Add and manage your educational qualifications</p>
+            </ion-label>
+            <ion-badge slot="end" color="medium">0</ion-badge>
+          </ion-item>
+
+          <ion-item button id="work-experience-btn" detail="true" disabled>
+            <ion-icon name="briefcase" slot="start" color="tertiary"></ion-icon>
+            <ion-label>
+              <h3>Work Experience</h3>
+              <p>Add your work history and experience</p>
+            </ion-label>
+            <ion-note slot="end">Coming Soon</ion-note>
+          </ion-item>
+
+          <ion-item button id="certifications-btn" detail="true" disabled>
+            <ion-icon name="ribbon" slot="start" color="success"></ion-icon>
+            <ion-label>
+              <h3>Certifications</h3>
+              <p>Professional certifications and licenses</p>
+            </ion-label>
+            <ion-note slot="end">Coming Soon</ion-note>
+          </ion-item>
+
+          <ion-item button id="skills-btn" detail="true" disabled>
+            <ion-icon name="bulb" slot="start" color="warning"></ion-icon>
+            <ion-label>
+              <h3>Skills</h3>
+              <p>Technical and soft skills</p>
+            </ion-label>
+            <ion-note slot="end">Coming Soon</ion-note>
+          </ion-item>
+        </ion-list>
+
+        <ion-list>
+          <ion-list-header>
+            <ion-label>Documents</ion-label>
+          </ion-list-header>
+
+          <ion-item button id="documents-btn" detail="true" disabled>
+            <ion-icon name="document-text" slot="start" color="secondary"></ion-icon>
+            <ion-label>
+              <h3>My Documents</h3>
+              <p>ID proofs, certificates, and other documents</p>
+            </ion-label>
+            <ion-note slot="end">Coming Soon</ion-note>
+          </ion-item>
+        </ion-list>
       </div>
     `;
   }
@@ -475,6 +557,22 @@ export class AccountPage {
     if (cancelLogoutButton) {
       cancelLogoutButton.addEventListener('click', () => {
         this.updateContent('profile');
+      });
+    }
+
+    // Education Records button
+    const educationRecordsBtn = document.getElementById('education-records-btn');
+    if (educationRecordsBtn) {
+      educationRecordsBtn.addEventListener('click', () => {
+        router.navigate('/account/education');
+      });
+    }
+
+    // Profile page logout button
+    const profileLogoutButton = document.getElementById('profile-logout-button');
+    if (profileLogoutButton) {
+      profileLogoutButton.addEventListener('click', () => {
+        this.handleLogout();
       });
     }
   }

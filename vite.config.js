@@ -6,6 +6,11 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
+    commonjsOptions: {
+      // Transform PouchDB CommonJS to ES modules
+      include: [/pouchdb/, /node_modules/],
+      transformMixedEsModules: true
+    },
     rollupOptions: {
       output: {
         manualChunks: {
@@ -15,7 +20,20 @@ export default defineConfig({
     }
   },
   server: {
-    port: 5173
+    port: 5173,
+    proxy: {
+      // Proxy CouchDB requests to avoid CORS issues in development
+      '/couchdb': {
+        target: 'http://127.0.0.1:5984',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/couchdb/, ''),
+        configure: (proxy, options) => {
+          proxy.on('error', (err, req, res) => {
+            console.log('CouchDB proxy error:', err);
+          });
+        }
+      }
+    }
   },
   define: {
     // Fix for PouchDB and other Node.js packages that expect Node globals
@@ -30,6 +48,11 @@ export default defineConfig({
         global: 'globalThis'
       }
     },
-    include: ['pouchdb', 'pouchdb-find']
+    // Exclude PouchDB from pre-bundling to prevent class extension issues
+    exclude: ['pouchdb-browser', 'pouchdb', 'pouchdb-find']
+  },
+  ssr: {
+    // Also exclude from SSR optimization
+    noExternal: ['pouchdb-browser', 'pouchdb', 'pouchdb-find']
   }
 });

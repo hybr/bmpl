@@ -45,6 +45,117 @@
   <!-- Capacitor -->
   <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core@8/dist/ionic/ionic.esm.js"></script>
   <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core@8/dist/ionic/ionic.js"></script>
+
+  <!-- PouchDB from CDN (loaded before app to avoid Vite bundling issues) -->
+  <!-- Using PouchDB 7.3.1 with pouchdb-find plugin -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pouchdb/7.3.1/pouchdb.min.js"></script>
+  <script>
+    // Load pouchdb-find plugin dynamically and register it
+    (function() {
+      if (!window.PouchDB) {
+        console.error('PouchDB failed to load from CDN');
+        return;
+      }
+
+      // Create a simple find polyfill that works with basic queries
+      // This adds createIndex and find methods to PouchDB instances
+      var findPlugin = {
+        createIndex: function(opts) {
+          var self = this;
+          // Store index definition in a special document
+          return self.get('_local/_indexes').catch(function() {
+            return { _id: '_local/_indexes', indexes: [] };
+          }).then(function(doc) {
+            var indexDef = JSON.stringify(opts.index);
+            if (doc.indexes.indexOf(indexDef) === -1) {
+              doc.indexes.push(indexDef);
+            }
+            return self.put(doc).catch(function() {
+              // Ignore conflicts
+              return { ok: true };
+            });
+          }).then(function() {
+            return { result: 'created' };
+          });
+        },
+        find: function(opts) {
+          var self = this;
+          var selector = opts.selector || {};
+          var limit = opts.limit || 25;
+          var skip = opts.skip || 0;
+
+          return self.allDocs({ include_docs: true }).then(function(result) {
+            var docs = result.rows
+              .map(function(row) { return row.doc; })
+              .filter(function(doc) { return doc && !doc._id.startsWith('_'); });
+
+            // Apply selector filtering
+            var filtered = docs.filter(function(doc) {
+              return matchSelector(doc, selector);
+            });
+
+            // Apply skip and limit
+            var sliced = filtered.slice(skip, skip + limit);
+
+            return { docs: sliced };
+          });
+        }
+      };
+
+      // Simple selector matching
+      function matchSelector(doc, selector) {
+        for (var key in selector) {
+          if (key === '$or') {
+            var orMatch = selector[key].some(function(sub) {
+              return matchSelector(doc, sub);
+            });
+            if (!orMatch) return false;
+          } else if (key === '$and') {
+            var andMatch = selector[key].every(function(sub) {
+              return matchSelector(doc, sub);
+            });
+            if (!andMatch) return false;
+          } else if (key === '$in') {
+            continue; // Skip $in at top level
+          } else {
+            var value = selector[key];
+            var docValue = doc[key];
+
+            if (typeof value === 'object' && value !== null) {
+              // Handle operators
+              if ('$eq' in value && docValue !== value.$eq) return false;
+              if ('$ne' in value && docValue === value.$ne) return false;
+              if ('$gt' in value && !(docValue > value.$gt)) return false;
+              if ('$gte' in value && !(docValue >= value.$gte)) return false;
+              if ('$lt' in value && !(docValue < value.$lt)) return false;
+              if ('$lte' in value && !(docValue <= value.$lte)) return false;
+              if ('$in' in value && value.$in.indexOf(docValue) === -1) return false;
+              if ('$regex' in value) {
+                var regex = value.$regex;
+                if (typeof regex === 'string') regex = new RegExp(regex, 'i');
+                if (!regex.test(docValue || '')) return false;
+              }
+            } else {
+              // Direct equality
+              if (docValue !== value) return false;
+            }
+          }
+        }
+        return true;
+      }
+
+      // Register the plugin
+      PouchDB.plugin(findPlugin);
+      console.log('PouchDB find polyfill registered');
+
+      // Verify
+      var testDb = new PouchDB('__pouchdb_test__');
+      if (typeof testDb.createIndex === 'function' && typeof testDb.find === 'function') {
+        console.log('PouchDB with find methods ready');
+      }
+      testDb.close();
+    })();
+  </script>
 </head>
 
 <body>

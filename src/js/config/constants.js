@@ -28,7 +28,8 @@ export const DOC_TYPES = {
   DATA: 'data',
   PROCESS_DEFINITION: 'process_definition',
   PROCESS_INSTANCE: 'process_instance',
-  STEP_EXECUTION: 'step_execution'
+  STEP_EXECUTION: 'step_execution',
+  USER: 'user'
 };
 
 // Activity Actions
@@ -79,6 +80,8 @@ export const ROUTES = {
   OPPORTUNITIES: '/opportunities',
   MYSPACE: '/myspace',
   ACCOUNT: '/account',
+  ACCOUNT_PROCESSES: '/account/processes',
+  ACCOUNT_EDUCATION: '/account/education',
   ORG_LIST: '/organizations',
   ORG_DETAIL: '/organizations/:id',
   ORG_SETTINGS: '/organizations/:id/settings',
@@ -362,3 +365,29 @@ export const ANALYTICS_DATE_RANGES = {
 // Pagination
 export const DEFAULT_PAGE_SIZE = 50;
 export const MAX_PAGE_SIZE = 100;
+
+// CouchDB Configuration
+// In development, use Vite proxy to avoid CORS issues
+// In production, use direct CouchDB URL (ensure CORS is configured)
+const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
+export const COUCHDB_CONFIG = {
+  // Use proxy in dev, direct URL in production
+  URL: isDev ? '/couchdb' : 'http://127.0.0.1:5984',
+  // Direct URL for reference (used for PouchDB sync which needs full URL)
+  DIRECT_URL: 'http://127.0.0.1:5984',
+  // Database naming convention: {prefix}_{orgId}
+  DB_PREFIX: 'bmpl_org_',
+  // Sync options
+  SYNC_OPTIONS: {
+    live: true,
+    retry: true,
+    batch_size: 100,
+    batches_limit: 10
+  },
+  // Retry configuration
+  RETRY: {
+    MAX_ATTEMPTS: 5,
+    BACK_OFF_FACTOR: 1.5,
+    INITIAL_DELAY_MS: 1000
+  }
+};

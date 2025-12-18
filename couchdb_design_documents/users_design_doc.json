@@ -1,0 +1,24 @@
+{
+  "_id": "_design/users",
+  "views": {
+    "by_username": {
+      "map": "function (doc) { if (doc.type === 'user') { emit(doc.username.toLowerCase(), doc); } }"
+    },
+    "by_email": {
+      "map": "function (doc) { if (doc.type === 'user' && doc.email) { emit(doc.email.toLowerCase(), doc); } }"
+    },
+    "by_name": {
+      "map": "function (doc) { if (doc.type === 'user' && doc.name) { emit(doc.name.toLowerCase(), doc); } }"
+    },
+    "by_phone": {
+      "map": "function (doc) { if (doc.type === 'user' && doc.phone) { emit(doc.phone, doc); } }"
+    },
+    "all_users": {
+      "map": "function (doc) { if (doc.type === 'user') { emit(doc.createdAt, { _id: doc._id, username: doc.username, name: doc.name, email: doc.email, phone: doc.phone }); } }"
+    },
+    "searchable": {
+      "map": "function (doc) { if (doc.type === 'user') { var terms = []; if (doc.username) terms.push(doc.username.toLowerCase()); if (doc.email) terms.push(doc.email.toLowerCase()); if (doc.name) { doc.name.toLowerCase().split(' ').forEach(function(part) { terms.push(part); }); } if (doc.phone) terms.push(doc.phone); terms.forEach(function(term) { emit(term, { _id: doc._id, username: doc.username, name: doc.name, email: doc.email, phone: doc.phone }); }); } }"
+    }
+  },
+  "language": "javascript"
+}

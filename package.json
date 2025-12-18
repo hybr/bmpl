@@ -35,6 +35,7 @@
     "@capacitor/status-bar": "^6.0.0",
     "@ionic/core": "^8.0.0",
     "pouchdb": "^8.0.1",
+    "pouchdb-browser": "^9.0.0",
     "pouchdb-find": "^8.0.1"
   },
   "devDependencies": {

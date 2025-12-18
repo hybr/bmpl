@@ -111,8 +111,20 @@ export class TabsPage {
   async mounted() {
     console.log('Tabs page mounted');
 
-    // Ensure we're at Level 1 when first loading
-    if (navigationState.getCurrentLevel() !== 1) {
+    // If subTab is specified in params, set to Level 2 and activate subtab
+    if (this.params.subTab) {
+      navigationState.setActiveTab(this.currentTab);
+      navigationState.state.currentLevel = 2;
+      navigationState.setActiveSubTab(this.params.subTab);
+      this.bottomTabs.refresh();
+
+      // Emit event for page content to update
+      eventBus.emit('navigation:subtab-clicked', {
+        tab: this.currentTab,
+        subTab: this.params.subTab
+      });
+    } else if (navigationState.getCurrentLevel() !== 1) {
+      // Ensure we're at Level 1 when first loading without subTab
       navigationState.state.currentLevel = 1;
       navigationState.state.activeSubTab = null;
     }

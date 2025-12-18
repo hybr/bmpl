@@ -5,28 +5,30 @@
  */
 
 import { eventBus } from '../utils/events.js';
-
-// Mock user data for development - replace with actual API calls
-const mockUsers = [
-  { id: 'user_001', name: 'John Smith', email: 'john.smith@company.com', phone: '555-0101', department: 'Engineering', username: 'jsmith' },
-  { id: 'user_002', name: 'Sarah Johnson', email: 'sarah.j@company.com', phone: '555-0102', department: 'Marketing', username: 'sjohnson' },
-  { id: 'user_003', name: 'Mike Wilson', email: 'mike.w@company.com', phone: '555-0103', department: 'Sales', username: 'mwilson' },
-  { id: 'user_004', name: 'Emily Davis', email: 'emily.d@company.com', phone: '555-0104', department: 'HR', username: 'edavis' },
-  { id: 'user_005', name: 'Robert Brown', email: 'robert.b@company.com', phone: '555-0105', department: 'Finance', username: 'rbrown' },
-  { id: 'user_006', name: 'Lisa Anderson', email: 'lisa.a@company.com', phone: '555-0106', department: 'Operations', username: 'landerson' },
-  { id: 'user_007', name: 'David Martinez', email: 'david.m@company.com', phone: '555-0107', department: 'Engineering', username: 'dmartinez' },
-  { id: 'user_008', name: 'Jennifer Taylor', email: 'jennifer.t@company.com', phone: '555-0108', department: 'Marketing', username: 'jtaylor' },
-  { id: 'user_009', name: 'Chris Lee', email: 'chris.l@company.com', phone: '555-0109', department: 'Sales', username: 'clee' },
-  { id: 'user_010', name: 'Amanda White', email: 'amanda.w@company.com', phone: '555-0110', department: 'HR', username: 'awhite' },
-  { id: 'user_011', name: 'Yogesh Kumar', email: 'yogesh@company.com', phone: '555-0111', department: 'Engineering', username: 'yogesh' },
-  { id: 'user_012', name: 'Priya Sharma', email: 'priya.s@company.com', phone: '555-0112', department: 'Finance', username: 'psharma' }
-];
+import { userPersistence } from '../services/user-persistence.js';
+import { DOC_TYPES } from '../config/constants.js';
 
 /**
  * User Lookup Service
- * Handles searching and fetching user data
+ * Handles searching and fetching user data from CouchDB/PouchDB
  */
 export const userLookupService = {
+  /**
+   * Transform PouchDB user document to component format
+   */
+  transformUser(doc) {
+    if (!doc) return null;
+    return {
+      id: doc._id,
+      username: doc.username,
+      name: doc.name,
+      email: doc.email || '',
+      phone: doc.phone || '',
+      department: doc.department || '',
+      _rev: doc._rev
+    };
+  },
+
   /**
    * Search users by query (email, username, phone, or name)
    * @param {string} query - Search query
@@ -34,37 +36,81 @@ export const userLookupService = {
    * @returns {Promise<Array>} Matching users
    */
   async search(query, options = {}) {
-    const { searchFields = ['email', 'username', 'phone', 'name'], limit = 10 } = options;
-
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
+    const { limit = 10 } = options;
 
     const lowerQuery = query.toLowerCase().trim();
-
     if (!lowerQuery) return [];
 
-    // Search across specified fields
-    const results = mockUsers.filter(user => {
-      return searchFields.some(field => {
-        const value = user[field];
-        if (typeof value === 'string') {
-          return value.toLowerCase().includes(lowerQuery);
-        }
-        return false;
-      });
-    });
+    try {
+      await userPersistence.ensureInitialized();
+      const db = userPersistence.db;
 
-    return results.slice(0, limit);
+      // Use pouchdb-find with $regex for partial matching
+      const result = await db.find({
+        selector: {
+          type: DOC_TYPES.USER,
+          $or: [
+            { username: { $regex: new RegExp(lowerQuery, 'i') } },
+            { email: { $regex: new RegExp(lowerQuery, 'i') } },
+            { name: { $regex: new RegExp(lowerQuery, 'i') } },
+            { phone: { $regex: new RegExp(lowerQuery, 'i') } }
+          ]
+        },
+        limit: limit
+      });
+
+      return result.docs.map(doc => this.transformUser(doc));
+    } catch (error) {
+      console.error('Error searching users:', error);
+      // Fallback: get all users and filter client-side
+      return this.searchFallback(lowerQuery, limit);
+    }
+  },
+
+  /**
+   * Fallback search when $regex is not supported
+   */
+  async searchFallback(query, limit) {
+    try {
+      await userPersistence.ensureInitialized();
+      const users = await userPersistence.getAllUsers();
+
+      const filtered = users.filter(user => {
+        const searchStr = [
+          user.username || '',
+          user.email || '',
+          user.name || '',
+          user.phone || ''
+        ].join(' ').toLowerCase();
+        return searchStr.includes(query);
+      });
+
+      return filtered.slice(0, limit).map(doc => this.transformUser(doc));
+    } catch (error) {
+      console.error('Error in fallback search:', error);
+      return [];
+    }
   },
 
   /**
    * Get user by ID
-   * @param {string} userId - User ID
+   * @param {string} userId - User ID (e.g., "user:username")
    * @returns {Promise<object|null>} User object or null
    */
   async getById(userId) {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    return mockUsers.find(u => u.id === userId) || null;
+    try {
+      await userPersistence.ensureInitialized();
+      const db = userPersistence.db;
+
+      const doc = await db.get(userId);
+      return this.transformUser(doc);
+    } catch (error) {
+      if (error.name === 'not_found') {
+        return null;
+      }
+      console.error('Error getting user by ID:', error);
+      return null;
+    }
   },
 
   /**
@@ -73,30 +119,56 @@ export const userLookupService = {
    * @returns {Promise<object>} Result with success and user
    */
   async verify(query) {
-    await new Promise(resolve => setTimeout(resolve, 300));
-
     const lowerQuery = query.toLowerCase().trim();
 
-    // Try exact match first
-    let user = mockUsers.find(u =>
-      u.email.toLowerCase() === lowerQuery ||
-      u.username.toLowerCase() === lowerQuery ||
-      u.phone === lowerQuery
-    );
+    try {
+      await userPersistence.ensureInitialized();
 
-    // If no exact match, try partial match on name
-    if (!user) {
-      user = mockUsers.find(u =>
-        u.name.toLowerCase().includes(lowerQuery) ||
-        u.email.toLowerCase().includes(lowerQuery)
-      );
+      // Try exact username match first
+      let user = await userPersistence.getUserByUsername(lowerQuery);
+      if (user) {
+        return { success: true, user: this.transformUser(user) };
+      }
+
+      // Try exact email match
+      user = await userPersistence.getUserByEmail(lowerQuery);
+      if (user) {
+        return { success: true, user: this.transformUser(user) };
+      }
+
+      // Try phone match
+      const db = userPersistence.db;
+      const phoneResult = await db.find({
+        selector: {
+          type: DOC_TYPES.USER,
+          phone: query.trim()
+        }
+      });
+      if (phoneResult.docs.length > 0) {
+        return { success: true, user: this.transformUser(phoneResult.docs[0]) };
+      }
+
+      // Try partial match on name/email as fallback
+      const partialResult = await db.find({
+        selector: {
+          type: DOC_TYPES.USER,
+          $or: [
+            { name: { $regex: new RegExp(lowerQuery, 'i') } },
+            { email: { $regex: new RegExp(lowerQuery, 'i') } }
+          ]
+        },
+        limit: 1
+      });
+
+      if (partialResult.docs.length > 0) {
+        return { success: true, user: this.transformUser(partialResult.docs[0]) };
+      }
+
+      return { success: false, message: 'User not found. Please check the email/username and try again.' };
+    } catch (error) {
+      console.error('Error verifying user:', error);
+      return { success: false, message: 'Error searching for user. Please try again.' };
     }
-
-    if (user) {
-      return { success: true, user };
-    }
-
-    return { success: false, message: 'User not found. Please check the email/username and try again.' };
   }
 };
 

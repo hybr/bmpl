@@ -13,6 +13,7 @@ import { LineChart } from '../../components/charts/line-chart.js';
 import { PieChart } from '../../components/charts/pie-chart.js';
 import { BarChart } from '../../components/charts/bar-chart.js';
 import { createNotificationBell } from '../../components/notification-bell.js';
+import { createSyncStatus } from '../../components/sync-status.js';
 
 export class MySpaceDashboardPage extends BasePage {
   constructor() {
@@ -23,6 +24,7 @@ export class MySpaceDashboardPage extends BasePage {
     this.charts = {};
     this.pageElement = null;
     this.notificationBell = null;
+    this.syncStatus = null;
   }
 
   /**
@@ -49,6 +51,9 @@ export class MySpaceDashboardPage extends BasePage {
   async mounted() {
     // Initialize notification bell
     this.notificationBell = createNotificationBell('notification-bell-container');
+
+    // Initialize sync status
+    this.syncStatus = createSyncStatus('sync-status-container');
 
     await this.onWillEnter();
   }
@@ -662,6 +667,11 @@ export class MySpaceDashboardPage extends BasePage {
       if (chart && chart.destroy) chart.destroy();
     });
     this.charts = {};
+
+    // Cleanup sync status
+    if (this.syncStatus && this.syncStatus.destroy) {
+      this.syncStatus.destroy();
+    }
   }
 
   /**
@@ -673,6 +683,7 @@ export class MySpaceDashboardPage extends BasePage {
         <ion-toolbar>
           <ion-title>Dashboard</ion-title>
           <ion-buttons slot="end">
+            <div id="sync-status-container" style="margin-right: 8px;"></div>
             <div id="notification-bell-container"></div>
             <ion-button onclick="window.app.currentPage.loadDashboard()">
               <ion-icon slot="icon-only" name="refresh"></ion-icon>

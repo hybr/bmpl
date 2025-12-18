@@ -21,7 +21,7 @@ export class BottomTabs {
       },
       {
         id: 'marketplace',
-        label: 'Marketplace',
+        label: 'Market',
         icon: 'storefront-outline',
         iconActive: 'storefront',
         route: '/marketplace',
@@ -29,7 +29,7 @@ export class BottomTabs {
       },
       {
         id: 'opportunities',
-        label: 'Opportunities',
+        label: 'Jobs',
         icon: 'briefcase-outline',
         iconActive: 'briefcase',
         route: '/opportunities',
@@ -98,9 +98,9 @@ export class BottomTabs {
       account: isAuthenticated ? [
         { id: 'back', label: 'Back', icon: 'arrow-back' },
         { id: 'profile', label: 'Profile', icon: 'person' },
+        { id: 'processes', label: 'Processes', icon: 'documents', route: '/account/processes' },
         { id: 'settings', label: 'Settings', icon: 'settings' },
-        { id: 'notifications', label: 'Alerts', icon: 'notifications' },
-        { id: 'logout', label: 'Logout', icon: 'log-out' }
+        { id: 'notifications', label: 'Alerts', icon: 'notifications' }
       ] : [
         { id: 'back', label: 'Back', icon: 'arrow-back' },
         { id: 'login', label: 'Login', icon: 'log-in' },
