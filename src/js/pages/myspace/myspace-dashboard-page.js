@@ -151,7 +151,7 @@ export class MySpaceDashboardPage extends BasePage {
 
     container.innerHTML = `
       <div class="stats-grid">
-        <ion-card class="stat-card" onclick="window.app.navigate('/myspace/processes?status=active')">
+        <ion-card class="stat-card" onclick="window.app.navigate('/work/processes?status=active')">
           <ion-card-content>
             <div class="stat-icon" style="background-color: var(--ion-color-primary-tint);">
               <ion-icon name="pulse" color="primary"></ion-icon>
@@ -163,7 +163,7 @@ export class MySpaceDashboardPage extends BasePage {
           </ion-card-content>
         </ion-card>
 
-        <ion-card class="stat-card" onclick="window.app.navigate('/myspace/tasks')">
+        <ion-card class="stat-card" onclick="window.app.navigate('/work/tasks')">
           <ion-card-content>
             <div class="stat-icon" style="background-color: var(--ion-color-warning-tint);">
               <ion-icon name="checkbox" color="warning"></ion-icon>
@@ -175,7 +175,7 @@ export class MySpaceDashboardPage extends BasePage {
           </ion-card-content>
         </ion-card>
 
-        <ion-card class="stat-card" onclick="window.app.navigate('/myspace/processes?status=completed')">
+        <ion-card class="stat-card" onclick="window.app.navigate('/work/processes?status=completed')">
           <ion-card-content>
             <div class="stat-icon" style="background-color: var(--ion-color-success-tint);">
               <ion-icon name="checkmark-circle" color="success"></ion-icon>
@@ -187,7 +187,7 @@ export class MySpaceDashboardPage extends BasePage {
           </ion-card-content>
         </ion-card>
 
-        <ion-card class="stat-card" onclick="window.app.navigate('/myspace/processes')">
+        <ion-card class="stat-card" onclick="window.app.navigate('/work/processes')">
           <ion-card-content>
             <div class="stat-icon" style="background-color: var(--ion-color-medium-tint);">
               <ion-icon name="folder" color="medium"></ion-icon>
@@ -224,7 +224,7 @@ export class MySpaceDashboardPage extends BasePage {
         <ion-card-content>
           <div class="category-list">
             ${categories.map(([category, count]) => `
-              <div class="category-item" onclick="window.app.navigate('/myspace/processes?category=${category}')">
+              <div class="category-item" onclick="window.app.navigate('/work/processes?category=${category}')">
                 <span class="category-name">${this.formatCategoryName(category)}</span>
                 <ion-badge>${count}</ion-badge>
               </div>
@@ -487,7 +487,7 @@ export class MySpaceDashboardPage extends BasePage {
             expand="block"
             fill="clear"
             size="small"
-            onclick="window.app.navigate('/myspace/processes')">
+            onclick="window.app.navigate('/work/processes')">
             View All Processes
           </ion-button>
         </ion-card-content>
@@ -557,7 +557,7 @@ export class MySpaceDashboardPage extends BasePage {
             expand="block"
             fill="clear"
             size="small"
-            onclick="window.app.navigate('/myspace/tasks')">
+            onclick="window.app.navigate('/work/tasks')">
             View All Tasks
           </ion-button>
         </ion-card-content>

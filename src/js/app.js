@@ -247,7 +247,7 @@ class App {
       async () => {
         await this.loadPage('tabs-page', { tab: 'myspace' });
       },
-      { requiresAuth: true, title: 'My Space - V4L' }
+      { requiresAuth: true, title: 'Work - V4L' }
     );
 
     router.register(
@@ -320,9 +320,27 @@ class App {
       { requiresAuth: true, title: 'Organization Members - V4L' }
     );
 
+    // Organization create (requires auth)
+    router.register(
+      '/organizations/add',
+      async () => {
+        await this.loadPage('organization/org-create-page');
+      },
+      { requiresAuth: true, title: 'Create Organization - V4L' }
+    );
+
+    // Organization edit (requires auth)
+    router.register(
+      '/organizations/:id/edit',
+      async (params) => {
+        await this.loadPage('organization/org-edit-page', params);
+      },
+      { requiresAuth: true, title: 'Edit Organization - V4L' }
+    );
+
     // BPM - Dashboard (requires auth)
     router.register(
-      '/myspace/dashboard',
+      '/work/dashboard',
       async () => {
         await this.loadPage('myspace/myspace-dashboard-page');
       },
@@ -331,7 +349,7 @@ class App {
 
     // BPM - Processes List (requires auth)
     router.register(
-      '/myspace/processes',
+      '/work/processes',
       async () => {
         await this.loadPage('myspace/myspace-processes-page');
       },
@@ -340,7 +358,7 @@ class App {
 
     // BPM - My Tasks (requires auth)
     router.register(
-      '/myspace/tasks',
+      '/work/tasks',
       async () => {
         await this.loadPage('myspace/myspace-tasks-page');
       },
@@ -349,7 +367,7 @@ class App {
 
     // BPM - Reports (requires auth)
     router.register(
-      '/myspace/reports',
+      '/work/reports',
       async () => {
         await this.loadPage('myspace/myspace-reports-page');
       },
@@ -358,7 +376,7 @@ class App {
 
     // BPM - Analytics (requires auth) - Phase 5
     router.register(
-      '/myspace/analytics',
+      '/work/analytics',
       async () => {
         await this.loadPage('myspace/myspace-analytics-page');
       },

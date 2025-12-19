@@ -468,7 +468,7 @@ export class BaseProcessDetailPage extends BasePage {
         <div class="error-state">
           <ion-icon name="alert-circle-outline" style="font-size: 64px; color: var(--ion-color-danger);"></ion-icon>
           <p>${message}</p>
-          <ion-button onclick="window.app.navigate('/myspace/processes')">Back to List</ion-button>
+          <ion-button onclick="window.app.navigate('/work/processes')">Back to List</ion-button>
         </div>
       `;
     }

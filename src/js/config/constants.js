@@ -78,7 +78,7 @@ export const ROUTES = {
   HOME: '/home',
   MARKETPLACE: '/marketplace',
   OPPORTUNITIES: '/opportunities',
-  MYSPACE: '/myspace',
+  MYSPACE: '/work',
   ACCOUNT: '/account',
   ACCOUNT_PROCESSES: '/account/processes',
   ACCOUNT_EDUCATION: '/account/education',

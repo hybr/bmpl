@@ -37,10 +37,10 @@ export class BottomTabs {
       },
       {
         id: 'myspace',
-        label: 'My Space',
+        label: 'Work',
         icon: 'business-outline',
         iconActive: 'business',
-        route: '/myspace',
+        route: '/work',
         requiresAuth: true
       },
       {
@@ -90,10 +90,10 @@ export class BottomTabs {
       ],
       myspace: [
         { id: 'back', label: 'Back', icon: 'arrow-back' },
-        { id: 'dashboard', label: 'Dashboard', icon: 'speedometer', route: '/myspace/dashboard' },
-        { id: 'processes', label: 'Processes', icon: 'git-network', route: '/myspace/processes' },
-        { id: 'tasks', label: 'My Tasks', icon: 'checkbox', route: '/myspace/tasks' },
-        { id: 'analytics', label: 'Analytics', icon: 'analytics', route: '/myspace/analytics' }
+        { id: 'dashboard', label: 'Dashboard', icon: 'speedometer', route: '/work/dashboard' },
+        { id: 'processes', label: 'Processes', icon: 'git-network', route: '/work/processes' },
+        { id: 'tasks', label: 'My Tasks', icon: 'checkbox', route: '/work/tasks' },
+        { id: 'analytics', label: 'Analytics', icon: 'analytics', route: '/work/analytics' }
       ],
       account: isAuthenticated ? [
         { id: 'back', label: 'Back', icon: 'arrow-back' },

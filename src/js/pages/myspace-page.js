@@ -5,6 +5,9 @@
 
 import { navigationState } from '../state/navigation-state.js';
 import { authState } from '../state/auth-state.js';
+import { orgState } from '../state/org-state.js';
+import { memberState } from '../state/member-state.js';
+import { organizationPersistence } from '../services/organization-persistence.js';
 import { eventBus } from '../utils/events.js';
 import { router } from '../router.js';
 
@@ -40,8 +43,9 @@ export class MySpacePage {
     mainContent.className = 'myspace-main-content';
     mainContent.id = 'myspace-main-content';
 
-    // Initial content
-    mainContent.innerHTML = this.getContentForView('orgs');
+    // Initial content (load async)
+    const initialContent = await this.getContentForView('orgs');
+    mainContent.innerHTML = initialContent;
 
     content.appendChild(mainContent);
     page.appendChild(content);
@@ -63,7 +67,7 @@ export class MySpacePage {
       <div class="auth-required-container">
         <ion-icon name="lock-closed" color="medium"></ion-icon>
         <h2>Login Required</h2>
-        <p>You need to be logged in to access My Space</p>
+        <p>You need to be logged in to access Work</p>
         <ion-button id="auth-login-button">
           <ion-icon name="log-in" slot="start"></ion-icon>
           Login
@@ -85,7 +89,7 @@ export class MySpacePage {
     toolbar.className = 'myspace-toolbar';
 
     const title = document.createElement('ion-title');
-    title.textContent = 'My Space';
+    title.textContent = 'Work';
     toolbar.appendChild(title);
 
     header.appendChild(toolbar);
@@ -95,59 +99,100 @@ export class MySpacePage {
   /**
    * Get content HTML for a specific view
    */
-  getContentForView(view) {
+  async getContentForView(view) {
+    if (view === 'orgs') {
+      return await this.getOrganizationsContent();
+    }
+
     const contentMap = {
-      orgs: this.getOrganizationsContent(),
       orders: this.getOrdersContent(),
       tasks: this.getTasksContent(),
       addorg: this.getAddOrgContent()
     };
 
-    return contentMap[view] || contentMap.orgs;
+    return contentMap[view] || await this.getOrganizationsContent();
   }
 
   /**
-   * Get organizations content
+   * Get organizations content (with real data from PouchDB)
    */
-  getOrganizationsContent() {
+  async getOrganizationsContent() {
+    // Load organizations from state or PouchDB
+    let organizations = orgState.getAllOrganizations();
+
+    // If state is empty, load from PouchDB
+    if (organizations.length === 0) {
+      try {
+        organizations = await organizationPersistence.getAllOrganizations();
+        orgState.setOrganizations(organizations);
+      } catch (error) {
+        console.error('Error loading organizations:', error);
+        organizations = [];
+      }
+    }
+
     const user = authState.getUser();
+
+    // Empty state
+    if (organizations.length === 0) {
+      return `
+        <div class="content-section">
+          <h2>My Organizations</h2>
+          <div class="empty-state">
+            <ion-icon name="business-outline" color="medium"></ion-icon>
+            <h3>No Organizations Yet</h3>
+            <p>Create or join an organization to get started</p>
+            <ion-button id="create-org-button">
+              <ion-icon name="add-circle" slot="start"></ion-icon>
+              Create Organization
+            </ion-button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Render org list with real data
+    const orgListHTML = organizations.map(org => {
+      // Get user's role in this org
+      const orgIdentifier = org._id ? org._id.replace('org:', '') : '';
+      const userRole = memberState.getCurrentUserRole(orgIdentifier);
+      const canEdit = userRole === 'owner' || userRole === 'admin';
+
+      // Get member count (if available)
+      const members = memberState.getOrgMembers(orgIdentifier);
+      const memberCount = members ? members.length : 0;
+
+      return `
+        <ion-item class="org-item" data-org-id="${org._id}">
+          <ion-avatar slot="start">
+            <img src="${org.logo || '/images/placeholder-org.jpg'}" alt="${org.fullName}" />
+          </ion-avatar>
+          <ion-label>
+            <h3>${org.fullName}</h3>
+            <p>${userRole || 'Member'} • ${memberCount} members</p>
+            ${org.tagLine ? `<p class="org-tagline">${org.tagLine}</p>` : ''}
+          </ion-label>
+          ${canEdit ? `
+            <ion-button slot="end" fill="clear" class="edit-org-btn" data-org-id="${org._id}">
+              <ion-icon name="create" slot="icon-only"></ion-icon>
+            </ion-button>
+          ` : ''}
+        </ion-item>
+      `;
+    }).join('');
 
     return `
       <div class="content-section">
-        <h2>My Organizations</h2>
-        <ion-list>
-          <ion-item class="org-item" data-org-id="1">
-            <ion-avatar slot="start">
-              <img src="/images/placeholder-org.jpg" alt="Organization" />
-            </ion-avatar>
-            <ion-label>
-              <h3>Local Coffee Shop</h3>
-              <p>Owner • 5 members</p>
-            </ion-label>
-            <ion-badge color="success" slot="end">Active</ion-badge>
-          </ion-item>
-
-          <ion-item class="org-item" data-org-id="2">
-            <ion-avatar slot="start">
-              <img src="/images/placeholder-org.jpg" alt="Organization" />
-            </ion-avatar>
-            <ion-label>
-              <h3>Fresh Produce Market</h3>
-              <p>Member • 12 members</p>
-            </ion-label>
-            <ion-badge color="success" slot="end">Active</ion-badge>
-          </ion-item>
-        </ion-list>
-
-        <div class="empty-state" style="display: none;">
-          <ion-icon name="business-outline" color="medium"></ion-icon>
-          <h3>No Organizations Yet</h3>
-          <p>Create or join an organization to get started</p>
-          <ion-button id="create-org-button">
-            <ion-icon name="add-circle" slot="start"></ion-icon>
-            Create Organization
+        <div class="section-header">
+          <h2>My Organizations</h2>
+          <ion-button id="add-org-button" fill="outline" size="small">
+            <ion-icon name="add" slot="start"></ion-icon>
+            Add Organization
           </ion-button>
         </div>
+        <ion-list>
+          ${orgListHTML}
+        </ion-list>
       </div>
     `;
   }
@@ -341,11 +386,12 @@ export class MySpacePage {
   /**
    * Update content based on view
    */
-  updateContent(view) {
+  async updateContent(view) {
     this.currentView = view;
     const mainContent = document.getElementById('myspace-main-content');
     if (mainContent) {
-      mainContent.innerHTML = this.getContentForView(view);
+      const content = await this.getContentForView(view);
+      mainContent.innerHTML = content;
       this.attachEventListeners();
     }
   }
@@ -357,15 +403,47 @@ export class MySpacePage {
     // Organization items
     document.querySelectorAll('.org-item').forEach(item => {
       item.addEventListener('click', (e) => {
+        // Don't navigate if clicking the edit button
+        if (e.target.closest('.edit-org-btn')) {
+          return;
+        }
         const orgId = e.currentTarget.getAttribute('data-org-id');
-        router.navigate(`/org/${orgId}`);
+        router.navigate(`/organizations/${orgId}`);
       });
     });
 
-    // Create org button
-    const createOrgButton = document.getElementById('create-org-submit-button');
+    // Add organization button
+    const addOrgButton = document.getElementById('add-org-button');
+    if (addOrgButton) {
+      addOrgButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        router.navigate('/organizations/add');
+      });
+    }
+
+    // Create organization button (empty state)
+    const createOrgButton = document.getElementById('create-org-button');
     if (createOrgButton) {
-      createOrgButton.addEventListener('click', () => {
+      createOrgButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        router.navigate('/organizations/add');
+      });
+    }
+
+    // Edit organization buttons
+    document.querySelectorAll('.edit-org-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation(); // Prevent org item click
+        const orgId = e.currentTarget.getAttribute('data-org-id');
+        router.navigate(`/organizations/${orgId}/edit`);
+      });
+    });
+
+    // Create org submit button (old addorg view)
+    const createOrgSubmitButton = document.getElementById('create-org-submit-button');
+    if (createOrgSubmitButton) {
+      createOrgSubmitButton.addEventListener('click', () => {
         this.handleCreateOrg();
       });
     }
@@ -374,7 +452,7 @@ export class MySpacePage {
     const authLoginButton = document.getElementById('auth-login-button');
     if (authLoginButton) {
       authLoginButton.addEventListener('click', () => {
-        router.navigate('/login', { redirect: '/myspace' });
+        router.navigate('/login', { redirect: '/work' });
       });
     }
 

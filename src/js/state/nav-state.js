@@ -31,7 +31,7 @@ class NavigationState extends Store {
   navigateToTab(tab) {
     // Check if tab requires authentication
     if (tab === 'myspace' && !authState.isAuth()) {
-      console.warn('My Space requires authentication');
+      console.warn('Work requires authentication');
       return false;
     }
 
