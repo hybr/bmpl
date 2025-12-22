@@ -112,51 +112,57 @@ export class MarketplacePage {
     return `
       <div class="content-section">
         <h2>Products for Sale</h2>
-        <div class="card-grid">
-          <ion-card class="product-card" data-product-id="1">
-            <img src="/images/placeholder-product.jpg" alt="Product" />
-            <ion-card-header>
-              <ion-card-title>Handmade Pottery Set</ion-card-title>
-              <ion-card-subtitle>$45.00</ion-card-subtitle>
-            </ion-card-header>
-            <ion-card-content>
-              <p>Beautiful handcrafted pottery set</p>
-              <ion-button size="small" class="buy-button">
-                <ion-icon name="cart" slot="start"></ion-icon>
-                Add to Cart
-              </ion-button>
-            </ion-card-content>
-          </ion-card>
+        <div class="row g-3">
+          <div class="col-12 col-sm-6 col-lg-4">
+            <ion-card class="product-card" data-product-id="1">
+              <img src="/images/placeholder-product.jpg" alt="Product" />
+              <ion-card-header>
+                <ion-card-title>Handmade Pottery Set</ion-card-title>
+                <ion-card-subtitle>$45.00</ion-card-subtitle>
+              </ion-card-header>
+              <ion-card-content>
+                <p>Beautiful handcrafted pottery set</p>
+                <ion-button size="small" class="buy-button">
+                  <ion-icon name="cart" slot="start"></ion-icon>
+                  Add to Cart
+                </ion-button>
+              </ion-card-content>
+            </ion-card>
+          </div>
 
-          <ion-card class="product-card" data-product-id="2">
-            <img src="/images/placeholder-product.jpg" alt="Product" />
-            <ion-card-header>
-              <ion-card-title>Organic Honey</ion-card-title>
-              <ion-card-subtitle>$12.00</ion-card-subtitle>
-            </ion-card-header>
-            <ion-card-content>
-              <p>Pure local honey, 500g jar</p>
-              <ion-button size="small" class="buy-button">
-                <ion-icon name="cart" slot="start"></ion-icon>
-                Add to Cart
-              </ion-button>
-            </ion-card-content>
-          </ion-card>
+          <div class="col-12 col-sm-6 col-lg-4">
+            <ion-card class="product-card" data-product-id="2">
+              <img src="/images/placeholder-product.jpg" alt="Product" />
+              <ion-card-header>
+                <ion-card-title>Organic Honey</ion-card-title>
+                <ion-card-subtitle>$12.00</ion-card-subtitle>
+              </ion-card-header>
+              <ion-card-content>
+                <p>Pure local honey, 500g jar</p>
+                <ion-button size="small" class="buy-button">
+                  <ion-icon name="cart" slot="start"></ion-icon>
+                  Add to Cart
+                </ion-button>
+              </ion-card-content>
+            </ion-card>
+          </div>
 
-          <ion-card class="product-card" data-product-id="3">
-            <img src="/images/placeholder-product.jpg" alt="Product" />
-            <ion-card-header>
-              <ion-card-title>Leather Wallet</ion-card-title>
-              <ion-card-subtitle>$35.00</ion-card-subtitle>
-            </ion-card-header>
-            <ion-card-content>
-              <p>Handcrafted genuine leather</p>
-              <ion-button size="small" class="buy-button">
-                <ion-icon name="cart" slot="start"></ion-icon>
-                Add to Cart
-              </ion-button>
-            </ion-card-content>
-          </ion-card>
+          <div class="col-12 col-sm-6 col-lg-4">
+            <ion-card class="product-card" data-product-id="3">
+              <img src="/images/placeholder-product.jpg" alt="Product" />
+              <ion-card-header>
+                <ion-card-title>Leather Wallet</ion-card-title>
+                <ion-card-subtitle>$35.00</ion-card-subtitle>
+              </ion-card-header>
+              <ion-card-content>
+                <p>Handcrafted genuine leather</p>
+                <ion-button size="small" class="buy-button">
+                  <ion-icon name="cart" slot="start"></ion-icon>
+                  Add to Cart
+                </ion-button>
+              </ion-card-content>
+            </ion-card>
+          </div>
         </div>
       </div>
     `;
@@ -211,36 +217,40 @@ export class MarketplacePage {
     return `
       <div class="content-section">
         <h2>Items for Rent</h2>
-        <div class="card-grid">
-          <ion-card class="rental-card" data-rental-id="1">
-            <img src="/images/placeholder-rental.jpg" alt="Rental" />
-            <ion-card-header>
-              <ion-card-title>Party Tent</ion-card-title>
-              <ion-card-subtitle>$75/day</ion-card-subtitle>
-            </ion-card-header>
-            <ion-card-content>
-              <p>Large outdoor event tent</p>
-              <ion-button size="small" class="rent-button">
-                <ion-icon name="calendar" slot="start"></ion-icon>
-                Rent Now
-              </ion-button>
-            </ion-card-content>
-          </ion-card>
+        <div class="row g-3">
+          <div class="col-12 col-sm-6 col-lg-4">
+            <ion-card class="rental-card" data-rental-id="1">
+              <img src="/images/placeholder-rental.jpg" alt="Rental" />
+              <ion-card-header>
+                <ion-card-title>Party Tent</ion-card-title>
+                <ion-card-subtitle>$75/day</ion-card-subtitle>
+              </ion-card-header>
+              <ion-card-content>
+                <p>Large outdoor event tent</p>
+                <ion-button size="small" class="rent-button">
+                  <ion-icon name="calendar" slot="start"></ion-icon>
+                  Rent Now
+                </ion-button>
+              </ion-card-content>
+            </ion-card>
+          </div>
 
-          <ion-card class="rental-card" data-rental-id="2">
-            <img src="/images/placeholder-rental.jpg" alt="Rental" />
-            <ion-card-header>
-              <ion-card-title>Power Tools Set</ion-card-title>
-              <ion-card-subtitle">$40/day</ion-card-subtitle>
-            </ion-card-header>
-            <ion-card-content>
-              <p>Complete power tools collection</p>
-              <ion-button size="small" class="rent-button">
-                <ion-icon name="calendar" slot="start"></ion-icon>
-                Rent Now
-              </ion-button>
-            </ion-card-content>
-          </ion-card>
+          <div class="col-12 col-sm-6 col-lg-4">
+            <ion-card class="rental-card" data-rental-id="2">
+              <img src="/images/placeholder-rental.jpg" alt="Rental" />
+              <ion-card-header>
+                <ion-card-title>Power Tools Set</ion-card-title>
+                <ion-card-subtitle>$40/day</ion-card-subtitle>
+              </ion-card-header>
+              <ion-card-content>
+                <p>Complete power tools collection</p>
+                <ion-button size="small" class="rent-button">
+                  <ion-icon name="calendar" slot="start"></ion-icon>
+                  Rent Now
+                </ion-button>
+              </ion-card-content>
+            </ion-card>
+          </div>
         </div>
       </div>
     `;
@@ -253,42 +263,54 @@ export class MarketplacePage {
     return `
       <div class="content-section">
         <h2>Browse by Category</h2>
-        <div class="category-grid">
-          <ion-card class="category-card" data-category="food">
-            <ion-icon name="fast-food"></ion-icon>
-            <h3>Food & Beverages</h3>
-            <p>120 items</p>
-          </ion-card>
+        <div class="row g-3">
+          <div class="col-6 col-md-4 col-lg-3">
+            <ion-card class="category-card" data-category="food">
+              <ion-icon name="fast-food"></ion-icon>
+              <h3>Food & Beverages</h3>
+              <p>120 items</p>
+            </ion-card>
+          </div>
 
-          <ion-card class="category-card" data-category="crafts">
-            <ion-icon name="color-palette"></ion-icon>
-            <h3>Arts & Crafts</h3>
-            <p>85 items</p>
-          </ion-card>
+          <div class="col-6 col-md-4 col-lg-3">
+            <ion-card class="category-card" data-category="crafts">
+              <ion-icon name="color-palette"></ion-icon>
+              <h3>Arts & Crafts</h3>
+              <p>85 items</p>
+            </ion-card>
+          </div>
 
-          <ion-card class="category-card" data-category="home">
-            <ion-icon name="home"></ion-icon>
-            <h3>Home & Garden</h3>
-            <p>95 items</p>
-          </ion-card>
+          <div class="col-6 col-md-4 col-lg-3">
+            <ion-card class="category-card" data-category="home">
+              <ion-icon name="home"></ion-icon>
+              <h3>Home & Garden</h3>
+              <p>95 items</p>
+            </ion-card>
+          </div>
 
-          <ion-card class="category-card" data-category="electronics">
-            <ion-icon name="phone-portrait"></ion-icon>
-            <h3>Electronics</h3>
-            <p>45 items</p>
-          </ion-card>
+          <div class="col-6 col-md-4 col-lg-3">
+            <ion-card class="category-card" data-category="electronics">
+              <ion-icon name="phone-portrait"></ion-icon>
+              <h3>Electronics</h3>
+              <p>45 items</p>
+            </ion-card>
+          </div>
 
-          <ion-card class="category-card" data-category="clothing">
-            <ion-icon name="shirt"></ion-icon>
-            <h3>Clothing</h3>
-            <p>150 items</p>
-          </ion-card>
+          <div class="col-6 col-md-4 col-lg-3">
+            <ion-card class="category-card" data-category="clothing">
+              <ion-icon name="shirt"></ion-icon>
+              <h3>Clothing</h3>
+              <p>150 items</p>
+            </ion-card>
+          </div>
 
-          <ion-card class="category-card" data-category="services">
-            <ion-icon name="build"></ion-icon>
-            <h3>Services</h3>
-            <p>60 services</p>
-          </ion-card>
+          <div class="col-6 col-md-4 col-lg-3">
+            <ion-card class="category-card" data-category="services">
+              <ion-icon name="build"></ion-icon>
+              <h3>Services</h3>
+              <p>60 services</p>
+            </ion-card>
+          </div>
         </div>
       </div>
     `;
@@ -421,7 +443,6 @@ export class MarketplacePage {
    * Called after page is mounted
    */
   async mounted() {
-    console.log('Marketplace page mounted');
     navigationState.setActiveTab('marketplace');
     this.attachEventListeners();
   }

@@ -33,8 +33,8 @@ export class TabsPage {
     pagesContainer.className = 'tab-pages';
     pagesContainer.id = 'tab-pages';
 
-    // Render initial tab page
-    await this.loadTabPage(this.currentTab, pagesContainer);
+    // Render initial tab page (without calling mounted yet)
+    await this.loadTabPage(this.currentTab, pagesContainer, false);
 
     container.appendChild(pagesContainer);
 
@@ -48,7 +48,7 @@ export class TabsPage {
   /**
    * Load a specific tab page
    */
-  async loadTabPage(tabId, container = null) {
+  async loadTabPage(tabId, container = null, callMounted = true) {
     const targetContainer = container || document.getElementById('tab-pages');
     if (!targetContainer) return;
 
@@ -81,14 +81,16 @@ export class TabsPage {
 
     // Create and render page
     this.currentPage = new PageClass(this.params);
+    this.currentPage._isMounted = false; // Initialize mounted flag
     const pageElement = await this.currentPage.render();
 
     // Clear container and append new page
     targetContainer.innerHTML = '';
     targetContainer.appendChild(pageElement);
 
-    // Call mounted hook
-    if (this.currentPage.mounted) {
+    // Call mounted hook (only if requested)
+    if (callMounted && this.currentPage.mounted && !this.currentPage._isMounted) {
+      this.currentPage._isMounted = true;
       await this.currentPage.mounted();
     }
 
@@ -109,7 +111,12 @@ export class TabsPage {
    * Called after page is mounted
    */
   async mounted() {
-    console.log('Tabs page mounted');
+    // Call mounted on the current page now that it's in the DOM
+    // Only if it hasn't been mounted yet
+    if (this.currentPage && this.currentPage.mounted && !this.currentPage._isMounted) {
+      this.currentPage._isMounted = true;
+      await this.currentPage.mounted();
+    }
 
     // If subTab is specified in params, set to Level 2 and activate subtab
     if (this.params.subTab) {

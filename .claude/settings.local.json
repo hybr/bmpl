@@ -8,7 +8,16 @@
       "Bash(find:*)",
       "Bash(node --check:*)",
       "Bash(npm run build:js:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(chmod:*)",
+      "Bash(cat:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(dir /b \"C:\\\\Users\\\\fwyog\\\\bmpl\\\\src\\\\js\\\\data\")",
+      "Bash(curl:*)",
+      "Bash(node scripts/seed-india-legal-types.js:*)",
+      "Bash(node:*)",
+      "Bash(timeout:*)"
     ]
   }
 }

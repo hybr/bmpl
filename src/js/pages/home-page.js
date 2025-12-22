@@ -299,7 +299,6 @@ export class HomePage {
    * Called after page is mounted
    */
   async mounted() {
-    console.log('Home page mounted');
     navigationState.setActiveTab('home');
   }
 

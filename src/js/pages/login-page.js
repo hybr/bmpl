@@ -36,53 +36,55 @@ class LoginPage {
           </div>
 
           <div class="card">
-            <form id="login-form">
-              <div class="form-group">
-                <label class="form-label">Username</label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  class="form-input"
-                  placeholder="Enter your username"
-                  required
-                  autocomplete="username"
-                />
-                <div id="username-error" class="form-error hidden"></div>
+            <div class="card-body">
+              <form id="login-form">
+                <div class="mb-3">
+                  <label class="form-label">Username</label>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    class="form-control"
+                    placeholder="Enter your username"
+                    required
+                    autocomplete="username"
+                  />
+                  <div id="username-error" class="invalid-feedback d-none"></div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Password</label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="form-control"
+                    placeholder="Enter your password"
+                    required
+                    autocomplete="current-password"
+                  />
+                  <div id="password-error" class="invalid-feedback d-none"></div>
+                </div>
+
+                <div id="general-error" class="invalid-feedback d-none" style="margin-bottom: 16px;"></div>
+
+                <ion-button id="login-btn" expand="block" type="submit">
+                  Login
+                </ion-button>
+              </form>
+
+              <div style="margin-top: 16px; text-align: center;">
+                <a href="/password-reset" data-link style="color: var(--app-primary); text-decoration: none; font-size: 14px;">
+                  Forgot password?
+                </a>
               </div>
 
-              <div class="form-group">
-                <label class="form-label">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  class="form-input"
-                  placeholder="Enter your password"
-                  required
-                  autocomplete="current-password"
-                />
-                <div id="password-error" class="form-error hidden"></div>
+              <div style="margin-top: 16px; text-align: center;">
+                <span style="font-size: 14px; color: #666;">Don't have an account? </span>
+                <a href="/register" data-link style="color: var(--app-primary); text-decoration: none; font-size: 14px;">
+                  Sign up
+                </a>
               </div>
-
-              <div id="general-error" class="form-error hidden" style="margin-bottom: 16px;"></div>
-
-              <ion-button id="login-btn" expand="block" type="submit">
-                Login
-              </ion-button>
-            </form>
-
-            <div style="margin-top: 16px; text-align: center;">
-              <a href="/password-reset" data-link style="color: var(--app-primary); text-decoration: none; font-size: 14px;">
-                Forgot password?
-              </a>
-            </div>
-
-            <div style="margin-top: 16px; text-align: center;">
-              <span style="font-size: 14px; color: #666;">Don't have an account? </span>
-              <a href="/register" data-link style="color: var(--app-primary); text-decoration: none; font-size: 14px;">
-                Sign up
-              </a>
             </div>
           </div>
         </div>
@@ -141,11 +143,11 @@ class LoginPage {
     const errorDiv = document.getElementById(`${fieldName}-error`);
     if (errorDiv) {
       if (result.valid) {
-        errorDiv.classList.add('hidden');
+        errorDiv.classList.add('d-none');
         errorDiv.textContent = '';
         delete this.errors[fieldName];
       } else {
-        errorDiv.classList.remove('hidden');
+        errorDiv.classList.remove('d-none');
         errorDiv.textContent = result.error;
         this.errors[fieldName] = result.error;
       }
@@ -174,7 +176,7 @@ class LoginPage {
     // Show loading state
     loginBtn.disabled = true;
     loginBtn.textContent = 'Logging in...';
-    generalError.classList.add('hidden');
+    generalError.classList.add('d-none');
     generalError.textContent = '';
 
     try {
@@ -190,7 +192,7 @@ class LoginPage {
       console.error('Login error:', error);
 
       // Show error
-      generalError.classList.remove('hidden');
+      generalError.classList.remove('d-none');
       generalError.textContent = error.message || 'Login failed. Please try again.';
 
       // Reset button

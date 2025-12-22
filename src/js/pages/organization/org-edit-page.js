@@ -8,6 +8,7 @@ import { authState } from '../../state/auth-state.js';
 import { orgState } from '../../state/org-state.js';
 import { memberState } from '../../state/member-state.js';
 import { organizationPersistence } from '../../services/organization-persistence.js';
+import { commonPersistence } from '../../services/common-persistence.js';
 import { validateRequired, validateOptionalEmail, validateLength } from '../../utils/validators.js';
 import { ROLES, ROLE_HIERARCHY } from '../../config/constants.js';
 
@@ -19,6 +20,8 @@ class OrgEditPage {
     this.formData = {};
     this.fullNameError = null;
     this.debounceTimer = null;
+    this.legalTypes = [];
+    this.legalTypesLoaded = false;
   }
 
   async render() {
@@ -85,15 +88,12 @@ class OrgEditPage {
                   interface="popover"
                   required
                 >
-                  <ion-select-option value="LLC">LLC</ion-select-option>
-                  <ion-select-option value="Inc">Inc</ion-select-option>
-                  <ion-select-option value="Corp">Corp</ion-select-option>
-                  <ion-select-option value="LLP">LLP</ion-select-option>
-                  <ion-select-option value="Partnership">Partnership</ion-select-option>
-                  <ion-select-option value="Sole Proprietorship">Sole Proprietorship</ion-select-option>
-                  <ion-select-option value="Nonprofit">Nonprofit</ion-select-option>
-                  <ion-select-option value="Other">Other</ion-select-option>
+                  <!-- Legal types populated dynamically -->
                 </ion-select>
+                <div id="legalType-loading" style="padding: 10px; display: none;">
+                  <ion-spinner name="dots"></ion-spinner>
+                  <span style="margin-left: 10px; color: var(--ion-color-medium);">Loading legal types...</span>
+                </div>
                 <div class="form-error hidden" id="legalType-error"></div>
                 <small class="form-help">The legal structure of your organization</small>
               </div>
@@ -236,6 +236,134 @@ class OrgEditPage {
     return page;
   }
 
+  /**
+   * Load legal types from common database
+   */
+  async loadLegalTypes() {
+    const loadingDiv = document.getElementById('legalType-loading');
+
+    try {
+      if (loadingDiv) {
+        loadingDiv.style.display = 'block';
+      }
+
+      // Load all legal types from common database
+      const allLegalTypes = await commonPersistence.getAllLegalTypes({
+        activeOnly: true
+      });
+
+      this.legalTypes = allLegalTypes;
+      this.legalTypesLoaded = true;
+
+      console.log(`Loaded ${this.legalTypes.length} legal types from database`);
+
+      this.populateLegalTypeOptions();
+    } catch (error) {
+      console.error('Error loading legal types:', error);
+      // Fallback to hardcoded values
+      this.useFallbackLegalTypes();
+    } finally {
+      if (loadingDiv) {
+        loadingDiv.style.display = 'none';
+      }
+    }
+  }
+
+  /**
+   * Populate legal type select options from loaded data
+   */
+  populateLegalTypeOptions() {
+    const select = document.getElementById('legalType');
+
+    if (!select) return;
+
+    // Store current value to restore after populating
+    const currentValue = this.org ? this.org.legalType : null;
+
+    // Clear existing options
+    select.innerHTML = '';
+
+    // Group by country
+    const byCountry = {};
+    this.legalTypes.forEach(lt => {
+      if (!byCountry[lt.country_name]) {
+        byCountry[lt.country_name] = [];
+      }
+      byCountry[lt.country_name].push(lt);
+    });
+
+    // Sort countries alphabetically
+    const sortedCountries = Object.keys(byCountry).sort();
+
+    // Create options grouped by country
+    sortedCountries.forEach(country => {
+      // Create option group header (using comment as Ionic doesn't support optgroup)
+      const comment = document.createComment(` ${country} `);
+      select.appendChild(comment);
+
+      // Sort legal types within country
+      const legalTypesInCountry = byCountry[country].sort((a, b) =>
+        a.legal_type.localeCompare(b.legal_type)
+      );
+
+      // Create options for this country
+      legalTypesInCountry.forEach(lt => {
+        const option = document.createElement('ion-select-option');
+        option.value = lt.legal_type;
+
+        // Display format: "LLC - United States" or just "LLC" if only one country
+        if (sortedCountries.length > 1) {
+          option.textContent = `${lt.abbreviation || lt.legal_type} (${country})`;
+        } else {
+          option.textContent = lt.abbreviation || lt.legal_type;
+        }
+
+        if (lt.description) {
+          option.title = lt.description;
+        }
+
+        select.appendChild(option);
+      });
+    });
+
+    // Restore previous value if exists
+    if (currentValue) {
+      select.value = currentValue;
+    }
+
+    console.log('Legal type options populated successfully');
+  }
+
+  /**
+   * Fallback to hardcoded legal types if database unavailable
+   */
+  useFallbackLegalTypes() {
+    const select = document.getElementById('legalType');
+
+    if (!select) return;
+
+    // Store current value to restore after populating
+    const currentValue = this.org ? this.org.legalType : null;
+
+    select.innerHTML = `
+      <ion-select-option value="LLC">LLC</ion-select-option>
+      <ion-select-option value="Inc">Inc</ion-select-option>
+      <ion-select-option value="Corp">Corp</ion-select-option>
+      <ion-select-option value="LLP">LLP</ion-select-option>
+      <ion-select-option value="Partnership">Partnership</ion-select-option>
+      <ion-select-option value="Sole Proprietorship">Sole Proprietorship</ion-select-option>
+      <ion-select-option value="Nonprofit">Nonprofit</ion-select-option>
+      <ion-select-option value="Other">Other</ion-select-option>
+    `;
+
+    // Restore previous value if exists
+    if (currentValue) {
+      select.value = currentValue;
+    }
+
+    console.warn('Using fallback legal types - common database unavailable');
+  }
+
   async mounted() {
     // Load organization data
     await this.loadOrganization();
@@ -247,6 +375,9 @@ class OrgEditPage {
       setTimeout(() => router.navigate('/work'), 2000);
       return;
     }
+
+    // Load legal types from common database
+    await this.loadLegalTypes();
 
     // Pre-populate form
     this.populateForm();

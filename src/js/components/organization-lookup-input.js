@@ -74,6 +74,7 @@ export const organizationLookupService = {
 
   /**
    * Verify organization exists by exact match on full name
+   * Uses API search with local fallback
    * @param {string} query - Organization full name
    * @returns {Promise<object>} Result with success and organization
    */
@@ -89,21 +90,18 @@ export const organizationLookupService = {
         return { success: true, organization: this.transformOrganization(org) };
       }
 
-      // Try partial match as fallback
-      const db = organizationPersistence.db;
-      const partialResult = await db.find({
-        selector: {
-          type: DOC_TYPES.ORGANIZATION,
-          $or: [
-            { fullName: { $regex: new RegExp(trimmedQuery, 'i') } },
-            { shortName: { $regex: new RegExp(trimmedQuery, 'i') } }
-          ]
-        },
-        limit: 1
-      });
+      // Try searching via API (will use searchOrganizations which calls Moleculer API)
+      const searchResults = await organizationPersistence.searchOrganizations(trimmedQuery, { limit: 5 });
 
-      if (partialResult.docs.length > 0) {
-        return { success: true, organization: this.transformOrganization(partialResult.docs[0]) };
+      if (searchResults && searchResults.length > 0) {
+        // Find best match (exact or closest)
+        const exactMatch = searchResults.find(o =>
+          o.fullName?.toLowerCase() === trimmedQuery.toLowerCase() ||
+          o.shortName?.toLowerCase() === trimmedQuery.toLowerCase()
+        );
+
+        const bestMatch = exactMatch || searchResults[0];
+        return { success: true, organization: this.transformOrganization(bestMatch) };
       }
 
       return {

@@ -6,7 +6,7 @@
 
 const ENV = {
   // API Configuration
-  AUTH_API_URL: import.meta.env.VITE_AUTH_API_URL || 'http://localhost:3000/api/auth',
+  AUTH_API_URL: import.meta.env.VITE_AUTH_API_URL || 'http://localhost:3000',
 
   // CouchDB Configuration
   COUCHDB_URL: import.meta.env.VITE_COUCHDB_URL || 'http://localhost:5984',
@@ -32,7 +32,8 @@ const ENV = {
   LARGE_FILE_THRESHOLD_BYTES: 1048576, // 1MB - files larger than this go to blob storage
 
   // Development
-  DEBUG: import.meta.env.DEV || false
+  DEBUG: false
+  // DEBUG: import.meta.env.DEV || false
 };
 
 // Freeze to prevent modifications

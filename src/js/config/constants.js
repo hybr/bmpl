@@ -29,7 +29,14 @@ export const DOC_TYPES = {
   PROCESS_DEFINITION: 'process_definition',
   PROCESS_INSTANCE: 'process_instance',
   STEP_EXECUTION: 'step_execution',
-  USER: 'user'
+  USER: 'user',
+  ORGANIZATION_LEGAL_TYPE: 'organization_legal_type'
+};
+
+// Common Data Types (for bmpl_common database)
+export const COMMON_DATA_TYPES = {
+  ORGANIZATION_LEGAL_TYPE: 'organization_legal_type'
+  // Future: COUNTRY, CURRENCY, INDUSTRY, etc.
 };
 
 // Activity Actions
@@ -135,7 +142,15 @@ export const EVENTS = {
   // Notification Events
   NOTIFICATION_RECEIVED: 'notification:received',
   NOTIFICATION_READ: 'notification:read',
-  NOTIFICATIONS_CLEARED: 'notifications:cleared'
+  NOTIFICATIONS_CLEARED: 'notifications:cleared',
+
+  // Common Data Events
+  COMMON_DATA_CREATED: 'common:data:created',
+  COMMON_DATA_UPDATED: 'common:data:updated',
+  COMMON_DATA_DELETED: 'common:data:deleted',
+  COMMON_DATA_SYNC_STARTED: 'common:sync:started',
+  COMMON_DATA_SYNC_COMPLETED: 'common:sync:completed',
+  COMMON_DATA_SYNC_ERROR: 'common:sync:error'
 };
 
 // Error Codes
@@ -377,6 +392,10 @@ export const COUCHDB_CONFIG = {
   DIRECT_URL: 'http://127.0.0.1:5984',
   // Database naming convention: {prefix}_{orgId}
   DB_PREFIX: 'bmpl_org_',
+  // Fixed database names
+  COMMON_DB: 'bmpl_common',
+  USERS_DB: 'bmpl_users',
+  ORGANIZATIONS_DB: 'bmpl_organizations',
   // Sync options
   SYNC_OPTIONS: {
     live: true,

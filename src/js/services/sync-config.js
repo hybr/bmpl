@@ -66,6 +66,18 @@ class SyncConfigService {
   }
 
   /**
+   * Set credentials (convenience method for testing)
+   * @param {Object} credentials - { username, password }
+   */
+  setCredentials(credentials) {
+    if (credentials && credentials.username && credentials.password) {
+      this.saveCredentials(credentials.username, credentials.password);
+    } else {
+      console.error('Invalid credentials format. Expected { username, password }');
+    }
+  }
+
+  /**
    * Clear stored credentials
    */
   clearCredentials() {
@@ -279,6 +291,152 @@ class SyncConfigService {
       }
     } catch (error) {
       console.error('Error deleting database:', error);
+      throw error;
+    }
+  }
+
+  // ============================================
+  // COMMON DATABASE METHODS
+  // ============================================
+
+  /**
+   * Get remote URL for common database (for PouchDB sync)
+   */
+  getCommonDbUrl() {
+    return `${this.directCouchDbUrl}/${COUCHDB_CONFIG.COMMON_DB}`;
+  }
+
+  /**
+   * Get API URL for common database (proxied in dev)
+   */
+  getCommonDbApiUrl() {
+    return `${this.couchDbUrl}/${COUCHDB_CONFIG.COMMON_DB}`;
+  }
+
+  /**
+   * Ensure common database exists on CouchDB
+   */
+  async ensureCommonDatabase() {
+    try {
+      const dbUrl = this.getCommonDbApiUrl();
+
+      // Check if exists
+      const response = await fetch(dbUrl, {
+        method: 'HEAD',
+        headers: this.getAuthHeaders()
+      });
+
+      if (response.ok) {
+        console.log('Common database exists');
+        return true;
+      }
+
+      // Create database
+      const createResponse = await fetch(dbUrl, {
+        method: 'PUT',
+        headers: this.getAuthHeaders()
+      });
+
+      if (createResponse.ok || createResponse.status === 412) {
+        console.log('Common database created/exists');
+        return true;
+      }
+
+      throw new Error(`Failed to create common database: ${createResponse.status}`);
+    } catch (error) {
+      console.error('Error ensuring common database:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Deploy common database design documents
+   */
+  async deployCommonDesignDoc(designDoc) {
+    try {
+      const docUrl = `${this.getCommonDbApiUrl()}/_design/common`;
+
+      const response = await fetch(docUrl, {
+        method: 'PUT',
+        headers: {
+          ...this.getAuthHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(designDoc)
+      });
+
+      if (response.ok) {
+        console.log('Common design document deployed');
+        return true;
+      }
+
+      // Handle conflict - document exists, need to get rev
+      if (response.status === 409) {
+        const existing = await fetch(docUrl, {
+          headers: this.getAuthHeaders()
+        }).then(r => r.json());
+
+        designDoc._rev = existing._rev;
+
+        const updateResponse = await fetch(docUrl, {
+          method: 'PUT',
+          headers: {
+            ...this.getAuthHeaders(),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(designDoc)
+        });
+
+        if (updateResponse.ok) {
+          console.log('Common design document updated');
+          return true;
+        }
+      }
+
+      const errorText = await response.text();
+      throw new Error(`Failed to deploy design document: ${response.status} - ${errorText}`);
+    } catch (error) {
+      console.error('Error deploying common design doc:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Set common database security
+   */
+  async setCommonDatabaseSecurity() {
+    try {
+      const securityUrl = `${this.getCommonDbApiUrl()}/_security`;
+
+      const securityDoc = {
+        admins: {
+          names: [],
+          roles: ['_admin']
+        },
+        members: {
+          names: [],
+          roles: ['authenticated_user']
+        }
+      };
+
+      const response = await fetch(securityUrl, {
+        method: 'PUT',
+        headers: {
+          ...this.getAuthHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(securityDoc)
+      });
+
+      if (response.ok) {
+        console.log('Common database security set');
+        return true;
+      }
+
+      const errorText = await response.text();
+      throw new Error(`Failed to set security: ${response.status} - ${errorText}`);
+    } catch (error) {
+      console.error('Error setting common database security:', error);
       throw error;
     }
   }

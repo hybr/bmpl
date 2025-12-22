@@ -15,6 +15,19 @@ import { userLookupService } from '../components/user-lookup-input.js';
 // Cache for FK options (loaded from services)
 const fkOptionsCache = new Map();
 
+// CSS class constants (Bootstrap 5)
+const CSS = {
+  FORM: 'generated-form',
+  FORM_GROUP: 'mb-3',
+  FORM_LABEL: 'form-label',
+  FORM_INPUT: 'form-control',
+  FORM_SELECT: 'form-select',
+  FORM_ERROR: 'invalid-feedback d-none',
+  FORM_HELP: 'form-text text-muted',
+  REQUIRED: 'text-danger',
+  HIDDEN: 'd-none',
+};
+
 /**
  * Generate form fields from process definition variables
  * @param {object} variablesSchema - Process variables schema
@@ -100,18 +113,18 @@ export function getFKOptions(fieldName) {
  */
 function createFieldGroup(fieldName, fieldSchema, value) {
   const group = document.createElement('div');
-  group.className = 'form-group';
+  group.className = CSS.FORM_GROUP;
   group.dataset.field = fieldName;
 
   // Create label
   const label = document.createElement('label');
+  label.className = CSS.FORM_LABEL;
   label.setAttribute('for', fieldName);
   label.textContent = formatLabel(fieldName);
   if (fieldSchema.required) {
     const required = document.createElement('span');
-    required.className = 'required';
+    required.className = CSS.REQUIRED;
     required.textContent = ' *';
-    required.style.color = 'red';
     label.appendChild(required);
   }
   group.appendChild(label);
@@ -122,14 +135,14 @@ function createFieldGroup(fieldName, fieldSchema, value) {
 
   // Create error message container
   const error = document.createElement('div');
-  error.className = 'form-error hidden';
+  error.className = CSS.FORM_ERROR;
   error.id = `${fieldName}-error`;
   group.appendChild(error);
 
   // Create help text if provided
   if (fieldSchema.description) {
     const help = document.createElement('small');
-    help.className = 'form-help';
+    help.className = CSS.FORM_HELP;
     help.textContent = fieldSchema.description;
     group.appendChild(help);
   }
@@ -373,14 +386,14 @@ function createAutocompleteInput(fieldName, fieldSchema, options, value, isMulti
 
   // Options list (hidden by default)
   const optionsList = document.createElement('div');
-  optionsList.className = 'autocomplete-options hidden';
+  optionsList.className = 'autocomplete-options d-none';
 
   // Add search functionality
   searchbar.addEventListener('ionInput', (e) => {
     const query = (e.detail.value || '').toLowerCase();
 
     if (query.length < 1) {
-      optionsList.classList.add('hidden');
+      optionsList.classList.add('d-none');
       return;
     }
 
@@ -399,7 +412,7 @@ function createAutocompleteInput(fieldName, fieldSchema, options, value, isMulti
       `).join('');
     }
 
-    optionsList.classList.remove('hidden');
+    optionsList.classList.remove('d-none');
   });
 
   // Handle option selection
@@ -418,7 +431,7 @@ function createAutocompleteInput(fieldName, fieldSchema, options, value, isMulti
       </ion-chip>
     `;
     searchbar.value = '';
-    optionsList.classList.add('hidden');
+    optionsList.classList.add('d-none');
 
     // Dispatch change event
     hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
@@ -436,7 +449,7 @@ function createAutocompleteInput(fieldName, fieldSchema, options, value, isMulti
   // Close options when clicking outside
   document.addEventListener('click', (e) => {
     if (!container.contains(e.target)) {
-      optionsList.classList.add('hidden');
+      optionsList.classList.add('d-none');
     }
   });
 
@@ -503,11 +516,11 @@ function createUserLookupInput(fieldName, fieldSchema, value) {
 
   // Verified user display
   const verifiedDisplay = document.createElement('div');
-  verifiedDisplay.className = 'user-lookup-verified hidden';
+  verifiedDisplay.className = 'user-lookup-verified d-none';
 
   // Status/error message
   const statusMessage = document.createElement('div');
-  statusMessage.className = 'user-lookup-status hidden';
+  statusMessage.className = 'user-lookup-status d-none';
 
   // Handle verify button click
   verifyBtn.addEventListener('click', async () => {
@@ -522,7 +535,7 @@ function createUserLookupInput(fieldName, fieldSchema, value) {
     // Show loading state
     verifyBtn.disabled = true;
     verifyBtn.innerHTML = '<ion-spinner name="crescent"></ion-spinner>';
-    statusMessage.className = 'user-lookup-status hidden';
+    statusMessage.className = 'user-lookup-status d-none';
 
     try {
       // Use userLookupService to verify the user
@@ -551,9 +564,9 @@ function createUserLookupInput(fieldName, fieldSchema, value) {
             </ion-button>
           </div>
         `;
-        verifiedDisplay.classList.remove('hidden');
-        searchRow.classList.add('hidden');
-        statusMessage.className = 'user-lookup-status hidden';
+        verifiedDisplay.classList.remove('d-none');
+        searchRow.classList.add('d-none');
+        statusMessage.className = 'user-lookup-status d-none';
 
         // Handle clear button
         const clearBtn = verifiedDisplay.querySelector('.clear-user-btn');
@@ -561,8 +574,8 @@ function createUserLookupInput(fieldName, fieldSchema, value) {
           clearBtn.addEventListener('click', () => {
             hiddenInput.value = '';
             hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
-            verifiedDisplay.classList.add('hidden');
-            searchRow.classList.remove('hidden');
+            verifiedDisplay.classList.add('d-none');
+            searchRow.classList.remove('d-none');
             searchInput.value = '';
           });
         }
@@ -603,16 +616,16 @@ function createUserLookupInput(fieldName, fieldSchema, value) {
         </ion-button>
       </div>
     `;
-    verifiedDisplay.classList.remove('hidden');
-    searchRow.classList.add('hidden');
+    verifiedDisplay.classList.remove('d-none');
+    searchRow.classList.add('d-none');
 
     const clearBtn = verifiedDisplay.querySelector('.clear-user-btn');
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
         hiddenInput.value = '';
         hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
-        verifiedDisplay.classList.add('hidden');
-        searchRow.classList.remove('hidden');
+        verifiedDisplay.classList.add('d-none');
+        searchRow.classList.remove('d-none');
         searchInput.value = '';
       });
     }
@@ -679,13 +692,13 @@ function createEntityLookupInput(fieldName, fieldSchema, value) {
     const query = (e.detail.value || '').trim();
 
     if (query.length < 2) {
-      resultsList.classList.add('hidden');
+      resultsList.classList.add('d-none');
       return;
     }
 
     // Show loading
     resultsList.innerHTML = '<div class="entity-lookup-loading"><ion-spinner name="dots"></ion-spinner></div>';
-    resultsList.classList.remove('hidden');
+    resultsList.classList.remove('d-none');
 
     // Dispatch search event for parent to handle
     const searchEvent = new CustomEvent('entitySearch', {
@@ -745,7 +758,7 @@ function createEntityLookupInput(fieldName, fieldSchema, value) {
     `;
 
     searchbar.value = '';
-    resultsList.classList.add('hidden');
+    resultsList.classList.add('d-none');
   });
 
   // Handle remove selected
@@ -760,7 +773,7 @@ function createEntityLookupInput(fieldName, fieldSchema, value) {
   // Close results when clicking outside
   document.addEventListener('click', (e) => {
     if (!container.contains(e.target)) {
-      resultsList.classList.add('hidden');
+      resultsList.classList.add('d-none');
     }
   });
 
@@ -1167,7 +1180,7 @@ export function validateForm(form, schema, step = null) {
 export function displayErrors(form, errors) {
   // Clear all errors first
   form.querySelectorAll('.form-error').forEach(el => {
-    el.classList.add('hidden');
+    el.classList.add('d-none');
     el.textContent = '';
   });
 
@@ -1176,7 +1189,7 @@ export function displayErrors(form, errors) {
     const errorEl = form.querySelector(`#${fieldName}-error`);
     if (errorEl) {
       errorEl.textContent = errors[fieldName];
-      errorEl.classList.remove('hidden');
+      errorEl.classList.remove('d-none');
     }
   });
 }
@@ -1187,7 +1200,7 @@ export function displayErrors(form, errors) {
  */
 export function clearErrors(form) {
   form.querySelectorAll('.form-error').forEach(el => {
-    el.classList.add('hidden');
+    el.classList.add('d-none');
     el.textContent = '';
   });
 }

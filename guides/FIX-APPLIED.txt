@@ -1,0 +1,43 @@
+================================================================================
+CORS ERROR - FIXED!
+================================================================================
+
+WHAT WAS WRONG:
+- API configured for port 8080, but frontend runs on port 5173
+- Legal types endpoint required authentication
+
+WHAT I FIXED:
+1. Changed CORS_ORIGIN: 8080 → 5173 (api/.env)
+2. Made legal types endpoint public (api/services/api.service.js)
+
+================================================================================
+ACTION REQUIRED: RESTART API SERVER
+================================================================================
+
+OPTION 1 (EASIEST):
+    Double-click: restart-api.bat
+    Keep the window open!
+
+OPTION 2 (MANUAL):
+    cd api
+    npm start
+    Keep the terminal open!
+
+================================================================================
+THEN: REFRESH YOUR BROWSER
+================================================================================
+
+    Press: Ctrl + Shift + R  (hard refresh)
+    Or:    Ctrl + F5
+
+================================================================================
+WHAT YOU'LL SEE:
+================================================================================
+
+✅ NO MORE CORS ERRORS in console
+✅ Legal types load from API (or local fallback)
+✅ Organization forms work perfectly
+
+================================================================================
+DETAILED GUIDE: See CORS-FIX-README.md
+================================================================================

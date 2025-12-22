@@ -1,0 +1,27 @@
+{
+  "name": "bmpl-api",
+  "version": "1.0.0",
+  "description": "BMPL Moleculer Microservices API",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "moleculer",
+    "microservices",
+    "api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "jsonwebtoken": "^9.0.3",
+    "moleculer": "^0.14.35",
+    "moleculer-web": "^0.10.8",
+    "nano": "^11.0.3"
+  }
+}

@@ -3,6 +3,7 @@
  * Initializes the app, sets up routing, and loads initial state
  */
 
+import './bootstrap-init.js';
 import { router } from './router.js';
 import { authState } from './state/auth-state.js';
 import { orgState } from './state/org-state.js';
@@ -15,9 +16,13 @@ import { notificationService } from './services/notification-service.js';
 import { syncConfigService } from './services/sync-config.js';
 import { processSync } from './services/bpm/process-sync.js';
 import { userPersistence } from './services/user-persistence.js';
+import { organizationPersistence } from './services/organization-persistence.js';
+import { commonPersistence } from './services/common-persistence.js';
+import { seedDataService } from './services/seed-data-service.js';
 import { ROUTES, ROUTES_AUTH, EVENTS, COUCHDB_CONFIG } from './config/constants.js';
 import ENV from './config/env.js';
 import { eventBus } from './utils/events.js';
+import { apiClient } from './utils/api-client.js';
 import { initializeBPM, exposeBPMGlobally } from './services/bpm/index.js';
 import { BottomTabs } from './components/bottom-tabs.js';
 
@@ -83,6 +88,9 @@ class App {
       // Initialize CouchDB sync configuration
       await this.initializeCouchDBSync();
 
+      // Initialize common database and seed data
+      await this.initializeCommonDatabase();
+
       // Expose BPM globally in debug mode for testing
       if (ENV.DEBUG) {
         exposeBPMGlobally();
@@ -90,6 +98,8 @@ class App {
         window.syncConfigService = syncConfigService;
         window.processSync = processSync;
         window.userPersistence = userPersistence;
+        window.commonPersistence = commonPersistence;
+        window.seedDataService = seedDataService;
       }
 
       this.initialized = true;
@@ -595,59 +605,147 @@ class App {
   }
 
   /**
-   * Initialize CouchDB sync
+   * Initialize CouchDB sync with filtered replication
    */
   async initializeCouchDBSync() {
     try {
       // Initialize sync config service
       await syncConfigService.initialize();
 
-      // Initialize user persistence (PouchDB)
+      // Get current user from auth state
+      const currentUser = authState.getUser();
+
+      if (!currentUser) {
+        console.log('No authenticated user - skipping sync initialization');
+        return;
+      }
+
+      // Initialize persistence services (PouchDB)
       await userPersistence.ensureInitialized();
+      await organizationPersistence.ensureInitialized();
 
       // Check if we have an active organization
       const activeOrg = orgState.getActiveOrganization();
 
-      if (syncConfigService.isConnected) {
-        // Setup user database sync
+      if (syncConfigService.isConnected && syncConfigService.credentials) {
+        // 1. Setup FILTERED user database sync (only current user)
         const userDbUrl = `${COUCHDB_CONFIG.DIRECT_URL}/bmpl_users`;
-        await userPersistence.setupSync(userDbUrl, syncConfigService.credentials);
-        console.log('User sync started');
-
-        if (activeOrg) {
-          // Ensure remote database exists for org
-          await syncConfigService.ensureDatabase(activeOrg.id);
-
-          // Get remote database URL
-          const remoteUrl = syncConfigService.getRemoteDbUrl(activeOrg.id);
-
-          // Initialize process sync with remote URL
-          await processSync.initialize(activeOrg.id, remoteUrl, syncConfigService.credentials);
-
-          console.log('CouchDB sync initialized for org:', activeOrg.id);
+        try {
+          await userPersistence.setupSync(
+            userDbUrl,
+            syncConfigService.credentials,
+            currentUser.username  // Pass current username for filtering
+          );
+          console.log('✅ User sync started (filtered to current user)');
+        } catch (error) {
+          console.warn('⚠️ User sync disabled (no credentials) - using API only');
         }
-
-        this.showToast('Database sync connected', 'success');
       } else {
-        console.log('CouchDB not available, running in offline mode');
+        console.log('ℹ️ Direct CouchDB sync disabled - using API-first approach');
+      }
+
+      // 2. Get user's organization memberships from backend
+      const userOrgs = await this.getUserOrganizations();
+      const userOrgIds = userOrgs.map(org => org._id);
+
+      if (userOrgIds.length > 0 && syncConfigService.credentials) {
+        console.log(`📋 User is member of ${userOrgIds.length} organizations`);
+
+        // 3. Setup FILTERED organization database sync (only user's orgs)
+        const orgDbUrl = `${COUCHDB_CONFIG.DIRECT_URL}/bmpl_organizations`;
+        await organizationPersistence.setupSync(
+          orgDbUrl,
+          syncConfigService.credentials,
+          userOrgIds  // Pass org IDs for filtering
+        );
+        console.log(`✅ Organization sync started (filtered to ${userOrgIds.length} orgs)`);
+      } else {
+        console.log('⚠️ User has no organization memberships or sync disabled - skipping org sync');
+      }
+
+      // 4. Setup process sync for active org (using local-only mode)
+      console.log('📱 Running in API-first mode (local process storage)');
+      if (activeOrg) {
         // Initialize local-only sync
-        if (activeOrg) {
-          await processSync.initialize(activeOrg.id, null, null);
-        }
+        await processSync.initialize(activeOrg.id, null, null);
+        console.log('✅ Process sync initialized for org (local):', activeOrg.id);
       }
 
       // Listen for sync state changes
       eventBus.on(EVENTS.SYNC_STATE_CHANGED, (data) => {
         if (data.connected) {
-          console.log('CouchDB connected');
+          console.log('✅ CouchDB connected');
         } else {
-          console.log('CouchDB disconnected:', data.error);
+          console.log('⚠️ CouchDB disconnected:', data.error);
         }
       });
 
     } catch (error) {
-      console.error('Error initializing CouchDB sync:', error);
+      console.error('❌ Error initializing CouchDB sync:', error);
       // Continue without sync - local storage will still work
+    }
+  }
+
+  /**
+   * Get user's organization memberships from backend API
+   * @returns {Promise<Array>} Array of organization objects
+   */
+  async getUserOrganizations() {
+    try {
+      const response = await apiClient.get('/api/organizations/user-memberships');
+      return response.organizations || [];
+    } catch (error) {
+      console.error('Error fetching user organizations:', error);
+      // Fallback to member state if available
+      const userOrgIds = memberState.getUserOrganizationIds();
+      return userOrgIds.map(id => ({ _id: id }));
+    }
+  }
+
+  /**
+   * Initialize common database and seed data
+   */
+  async initializeCommonDatabase() {
+    try {
+      console.log('Initializing common database...');
+
+      // Initialize common database
+      await commonPersistence.ensureInitialized();
+      console.log('Common database initialized');
+
+      // Check if seed data exists
+      const hasSeedData = await seedDataService.hasSeedData();
+
+      if (!hasSeedData) {
+        console.log('Seeding common database with legal types...');
+        const results = await seedDataService.seedLegalTypes();
+        console.log('Seed data results:', results);
+
+        if (results.created > 0) {
+          console.log(`Successfully seeded ${results.created} legal types`);
+        }
+        if (results.errors.length > 0) {
+          console.warn('Some seed data failed to create:', results.errors);
+        }
+      } else {
+        console.log('Common database already has seed data');
+      }
+
+      // Common database sync is DISABLED - uses Moleculer API instead
+      // This provides better performance and reduces local storage usage
+      const commonDbUrl = syncConfigService.getCommonDbUrl();
+      await commonPersistence.setupSync(commonDbUrl, syncConfigService.credentials);
+      // The above call now just logs info - actual queries will use Moleculer API
+
+      // Get stats in debug mode
+      if (ENV.DEBUG) {
+        const stats = await seedDataService.getSeedDataStats();
+        console.log('Common database stats:', stats);
+      }
+
+    } catch (error) {
+      console.error('Error initializing common database:', error);
+      // Non-critical error - app can continue with fallback values
     }
   }
 

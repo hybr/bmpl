@@ -1,0 +1,19 @@
+{
+  "_id": "_design/common",
+  "validate_doc_update": "function(newDoc, oldDoc, userCtx) {\n  // Allow admins to do anything\n  if (userCtx.roles.indexOf('_admin') !== -1) {\n    return;\n  }\n\n  // Deletes: Only creator or admin\n  if (newDoc._deleted) {\n    if (oldDoc.createdBy !== userCtx.name && userCtx.roles.indexOf('_admin') === -1) {\n      throw({forbidden: 'You can only delete records you created'});\n    }\n    return;\n  }\n\n  // Validate required fields\n  if (!newDoc.type) {\n    throw({forbidden: 'Document must have a type field'});\n  }\n  if (!newDoc.createdBy) {\n    throw({forbidden: 'Document must have a createdBy field'});\n  }\n  if (!newDoc.createdAt) {\n    throw({forbidden: 'Document must have a createdAt field'});\n  }\n  if (!newDoc.updatedAt) {\n    throw({forbidden: 'Document must have an updatedAt field'});\n  }\n\n  // New document\n  if (!oldDoc) {\n    // createdBy must match authenticated user (unless it's system seed data)\n    if (newDoc.createdBy !== 'system' && newDoc.createdBy !== userCtx.name) {\n      throw({forbidden: 'createdBy must match your username'});\n    }\n    return;\n  }\n\n  // Updates: Only creator can update (or admin)\n  if (oldDoc.createdBy !== userCtx.name) {\n    throw({forbidden: 'You can only edit records you created'});\n  }\n\n  // Prevent changing createdBy\n  if (newDoc.createdBy !== oldDoc.createdBy) {\n    throw({forbidden: 'Cannot change createdBy field'});\n  }\n\n  // Prevent changing type\n  if (newDoc.type !== oldDoc.type) {\n    throw({forbidden: 'Cannot change type field'});\n  }\n\n  // Prevent changing is_seed_data on seed records\n  if (oldDoc.is_seed_data && !newDoc.is_seed_data) {\n    throw({forbidden: 'Cannot modify is_seed_data flag on seed records'});\n  }\n}",
+  "views": {
+    "by_type": {
+      "map": "function(doc) {\n  if (doc.type) {\n    emit(doc.type, doc);\n  }\n}"
+    },
+    "legal_types_by_country": {
+      "map": "function(doc) {\n  if (doc.type === 'organization_legal_type' && doc.country_iso_code) {\n    emit([doc.country_iso_code, doc.legal_type], doc);\n  }\n}"
+    },
+    "legal_types_all": {
+      "map": "function(doc) {\n  if (doc.type === 'organization_legal_type') {\n    emit(doc.legal_type, {\n      _id: doc._id,\n      legal_type: doc.legal_type,\n      abbreviation: doc.abbreviation,\n      country_iso_code: doc.country_iso_code,\n      country_name: doc.country_name,\n      full_name: doc.full_name,\n      description: doc.description\n    });\n  }\n}"
+    },
+    "by_creator": {
+      "map": "function(doc) {\n  if (doc.createdBy) {\n    emit([doc.createdBy, doc.type], doc);\n  }\n}"
+    }
+  },
+  "language": "javascript"
+}

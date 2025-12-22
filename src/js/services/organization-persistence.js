@@ -5,6 +5,7 @@
 
 import { DOC_TYPES, COUCHDB_CONFIG } from '../config/constants.js';
 import { getPouchDB } from './pouchdb-init.js';
+import { apiClient } from '../utils/api-client.js';
 
 // PouchDB reference (set after initialization)
 let PouchDB = null;
@@ -88,10 +89,19 @@ class OrganizationPersistence {
   }
 
   /**
-   * Setup sync with CouchDB
+   * Setup filtered sync with CouchDB
+   * Only syncs organizations where user is a member
+   * @param {string} remoteUrl - CouchDB remote URL
+   * @param {Object} credentials - { username, password }
+   * @param {Array<string>} userOrgIds - Organization IDs where user is a member
    */
-  async setupSync(remoteUrl, credentials = null) {
+  async setupSync(remoteUrl, credentials = null, userOrgIds = null) {
     await this.ensureInitialized();
+
+    if (!userOrgIds || userOrgIds.length === 0) {
+      console.warn('⚠️ No organization memberships - skipping organization sync');
+      return false;
+    }
 
     try {
       // Cancel existing sync
@@ -111,10 +121,16 @@ class OrganizationPersistence {
       // Create remote database reference
       this.remoteDb = new PouchDB(remote);
 
-      // Start bidirectional sync
+      // Start FILTERED bidirectional sync
+      // Only sync organizations where user is a member
       this.syncHandler = this.db.sync(this.remoteDb, {
         live: true,
-        retry: true
+        retry: true,
+        filter: (doc) => {
+          // Only sync organizations where user is a member
+          return doc.type === DOC_TYPES.ORGANIZATION &&
+                 userOrgIds.includes(doc._id);
+        }
       });
 
       this.syncHandler.on('change', (info) => {
@@ -128,10 +144,12 @@ class OrganizationPersistence {
       this.syncHandler.on('paused', (err) => {
         if (err) {
           console.warn('Organization sync paused with error:', err);
+        } else {
+          console.log('Organization sync paused (up to date)');
         }
       });
 
-      console.log('Organization sync started with:', remoteUrl);
+      console.log(`✅ Organization sync started (filtered to ${userOrgIds.length} orgs)`);
       return true;
     } catch (error) {
       console.error('Error setting up organization sync:', error);
@@ -363,6 +381,72 @@ class OrganizationPersistence {
       return result.docs;
     } catch (error) {
       console.error('Error getting all organizations:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Search organizations via backend API
+   * Used for organization lookups when not all orgs are synced locally
+   * @param {string} query - Search query
+   * @param {Object} options - Search options
+   * @param {number} options.limit - Max results to return
+   * @param {Object} options.filters - Additional filters (industry, legalType, etc.)
+   * @returns {Promise<Array>} Array of organization objects
+   */
+  async searchOrganizations(query, options = {}) {
+    try {
+      const response = await apiClient.post('/api/organizations/search', {
+        query,
+        limit: options.limit || 10,
+        filters: options.filters || {}
+      });
+      return response.organizations || [];
+    } catch (error) {
+      console.error('Error searching organizations via API:', error);
+      // Fallback to local search if API fails
+      return this.searchOrganizationsLocal(query, options);
+    }
+  }
+
+  /**
+   * Search organizations locally in PouchDB
+   * Fallback when API is unavailable (offline mode)
+   * Note: Will only contain user's member organizations due to filtered sync
+   * @param {string} query - Search query
+   * @param {Object} options - Search options
+   * @returns {Promise<Array>} Array of organization objects
+   */
+  async searchOrganizationsLocal(query, options = {}) {
+    await this.ensureInitialized();
+
+    try {
+      const allOrgs = await this.getAllOrganizations();
+      const lowerQuery = query.toLowerCase();
+
+      let results = allOrgs.filter(org => {
+        const searchStr = [
+          org.shortName || '',
+          org.fullName || '',
+          org.industry || '',
+          org.legalType || ''
+        ].join(' ').toLowerCase();
+        return searchStr.includes(lowerQuery);
+      });
+
+      // Apply additional filters if provided
+      if (options.filters) {
+        if (options.filters.industry) {
+          results = results.filter(org => org.industry === options.filters.industry);
+        }
+        if (options.filters.legalType) {
+          results = results.filter(org => org.legalType === options.filters.legalType);
+        }
+      }
+
+      return results.slice(0, options.limit || 10);
+    } catch (error) {
+      console.error('Error searching organizations locally:', error);
       return [];
     }
   }

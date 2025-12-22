@@ -5,6 +5,7 @@
 
 import Store from './store.js';
 import { EVENTS } from '../config/constants.js';
+import { authState } from './auth-state.js';
 
 class MemberState extends Store {
   constructor() {
@@ -122,6 +123,28 @@ class MemberState extends Store {
       }
     });
     return memberships;
+  }
+
+  /**
+   * Get organization IDs where current user is a member
+   * Used for filtered sync to determine which orgs to replicate
+   * @returns {Array<string>} Array of organization IDs
+   */
+  getUserOrganizationIds() {
+    const currentUser = authState.getUser();
+    if (!currentUser) {
+      return [];
+    }
+
+    const orgIds = [];
+    Object.entries(this._state.membersByOrg).forEach(([orgId, members]) => {
+      const isMember = members.some(m => m.userId === currentUser._id);
+      if (isMember) {
+        orgIds.push(orgId);
+      }
+    });
+
+    return orgIds;
   }
 
   /**

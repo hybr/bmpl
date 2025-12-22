@@ -5,6 +5,7 @@
 
 import { DOC_TYPES, COUCHDB_CONFIG } from '../config/constants.js';
 import { getPouchDB } from './pouchdb-init.js';
+import { apiClient } from '../utils/api-client.js';
 
 // PouchDB reference (set after initialization)
 let PouchDB = null;
@@ -84,10 +85,19 @@ class UserPersistence {
   }
 
   /**
-   * Setup sync with CouchDB
+   * Setup filtered sync with CouchDB
+   * Only syncs the current user's document
+   * @param {string} remoteUrl - CouchDB remote URL
+   * @param {Object} credentials - { username, password }
+   * @param {string} currentUsername - Current user's username for filtering
    */
-  async setupSync(remoteUrl, credentials = null) {
+  async setupSync(remoteUrl, credentials = null, currentUsername = null) {
     await this.ensureInitialized();
+
+    if (!currentUsername) {
+      console.warn('⚠️ No current username provided - user sync requires currentUsername for filtering');
+      return false;
+    }
 
     try {
       // Cancel existing sync
@@ -107,10 +117,15 @@ class UserPersistence {
       // Create remote database reference
       this.remoteDb = new PouchDB(remote);
 
-      // Start bidirectional sync
+      // Start FILTERED bidirectional sync
+      // Only sync current user's document
       this.syncHandler = this.db.sync(this.remoteDb, {
         live: true,
-        retry: true
+        retry: true,
+        filter: (doc) => {
+          // Only sync current user's document
+          return doc._id === `user:${currentUsername}`;
+        }
       });
 
       this.syncHandler.on('change', (info) => {
@@ -124,10 +139,12 @@ class UserPersistence {
       this.syncHandler.on('paused', (err) => {
         if (err) {
           console.warn('User sync paused with error:', err);
+        } else {
+          console.log('User sync paused (up to date)');
         }
       });
 
-      console.log('User sync started with:', remoteUrl);
+      console.log(`✅ User sync started (filtered to user: ${currentUsername})`);
       return true;
     } catch (error) {
       console.error('Error setting up user sync:', error);
@@ -279,6 +296,59 @@ class UserPersistence {
       return result.docs;
     } catch (error) {
       console.error('Error getting all users:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Search users via backend API
+   * Used for user lookups when not all users are synced locally
+   * @param {string} query - Search query
+   * @param {Object} options - Search options
+   * @param {number} options.limit - Max results to return
+   * @returns {Promise<Array>} Array of user objects
+   */
+  async searchUsers(query, options = {}) {
+    try {
+      const response = await apiClient.post('/api/users/search', {
+        query,
+        limit: options.limit || 10
+      });
+      return response.users || [];
+    } catch (error) {
+      console.error('Error searching users via API:', error);
+      // Fallback to local search if API fails
+      return this.searchUsersLocal(query, options);
+    }
+  }
+
+  /**
+   * Search users locally in PouchDB
+   * Fallback when API is unavailable (offline mode)
+   * Note: Will only contain current user due to filtered sync
+   * @param {string} query - Search query
+   * @param {Object} options - Search options
+   * @returns {Promise<Array>} Array of user objects
+   */
+  async searchUsersLocal(query, options = {}) {
+    await this.ensureInitialized();
+
+    try {
+      const allUsers = await this.getAllUsers();
+      const lowerQuery = query.toLowerCase();
+
+      return allUsers
+        .filter(user => {
+          const searchStr = [
+            user.username || '',
+            user.email || '',
+            user.name || ''
+          ].join(' ').toLowerCase();
+          return searchStr.includes(lowerQuery);
+        })
+        .slice(0, options.limit || 10);
+    } catch (error) {
+      console.error('Error searching users locally:', error);
       return [];
     }
   }

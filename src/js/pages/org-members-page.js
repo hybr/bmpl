@@ -48,21 +48,25 @@ class OrgMembersPage {
           <p>Loading members...</p>
         </div>
 
-        <div id="members-content" class="members-content hidden">
+        <div id="members-content" class="members-content d-none">
           <!-- Stats Section -->
-          <div class="stats-section">
-            <div class="stat-card">
-              <ion-icon name="people"></ion-icon>
-              <div class="stat-info">
-                <span id="total-members-count" class="stat-value">0</span>
-                <span class="stat-label">Total Members</span>
+          <div class="row g-3 mb-4">
+            <div class="col-6">
+              <div class="stat-card">
+                <ion-icon name="people"></ion-icon>
+                <div class="stat-info">
+                  <span id="total-members-count" class="stat-value">0</span>
+                  <span class="stat-label">Total Members</span>
+                </div>
               </div>
             </div>
-            <div class="stat-card">
-              <ion-icon name="shield-checkmark"></ion-icon>
-              <div class="stat-info">
-                <span id="admin-count" class="stat-value">0</span>
-                <span class="stat-label">Admins</span>
+            <div class="col-6">
+              <div class="stat-card">
+                <ion-icon name="shield-checkmark"></ion-icon>
+                <div class="stat-info">
+                  <span id="admin-count" class="stat-value">0</span>
+                  <span class="stat-label">Admins</span>
+                </div>
               </div>
             </div>
           </div>
@@ -76,7 +80,7 @@ class OrgMembersPage {
           </div>
         </div>
 
-        <div id="members-error" class="error-container hidden">
+        <div id="members-error" class="error-container d-none">
           <ion-icon name="alert-circle"></ion-icon>
           <p>Failed to load members</p>
           <ion-button id="retry-btn" fill="outline">Retry</ion-button>
@@ -251,21 +255,21 @@ class OrgMembersPage {
   }
 
   showLoading() {
-    document.getElementById('members-loading')?.classList.remove('hidden');
-    document.getElementById('members-content')?.classList.add('hidden');
-    document.getElementById('members-error')?.classList.add('hidden');
+    document.getElementById('members-loading')?.classList.remove('d-none');
+    document.getElementById('members-content')?.classList.add('d-none');
+    document.getElementById('members-error')?.classList.add('d-none');
   }
 
   showContent() {
-    document.getElementById('members-loading')?.classList.add('hidden');
-    document.getElementById('members-content')?.classList.remove('hidden');
-    document.getElementById('members-error')?.classList.add('hidden');
+    document.getElementById('members-loading')?.classList.add('d-none');
+    document.getElementById('members-content')?.classList.remove('d-none');
+    document.getElementById('members-error')?.classList.add('d-none');
   }
 
   showError() {
-    document.getElementById('members-loading')?.classList.add('hidden');
-    document.getElementById('members-content')?.classList.add('hidden');
-    document.getElementById('members-error')?.classList.remove('hidden');
+    document.getElementById('members-loading')?.classList.add('d-none');
+    document.getElementById('members-content')?.classList.add('d-none');
+    document.getElementById('members-error')?.classList.remove('d-none');
   }
 
   setupEventListeners() {

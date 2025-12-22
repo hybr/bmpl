@@ -72,97 +72,98 @@ class RegisterPage {
           <h2 id="step-title" style="margin-bottom: 24px;">Account Information</h2>
 
           <div class="card">
-            <form id="register-form">
-              <!-- Step 1: Basic Info -->
-              <div id="step-1" class="registration-step">
-                <div class="form-group">
-                  <label class="form-label">Username *</label>
-                  <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    class="form-input"
-                    placeholder="Choose a username"
-                    required
-                    autocomplete="username"
-                  />
-                  <div class="form-hint">3-20 characters, lowercase letters, numbers, and underscores only</div>
-                  <div id="username-error" class="form-error hidden"></div>
+            <div class="card-body">
+              <form id="register-form">
+                <!-- Step 1: Basic Info -->
+                <div id="step-1" class="registration-step">
+                  <div class="mb-3">
+                    <label class="form-label">Username *</label>
+                    <input
+                      type="text"
+                      id="username"
+                      name="username"
+                      class="form-control"
+                      placeholder="Choose a username"
+                      required
+                      autocomplete="username"
+                    />
+                    <div class="form-text text-muted">3-20 characters, lowercase letters, numbers, and underscores only</div>
+                    <div id="username-error" class="invalid-feedback d-none"></div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Full Name *</label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      class="form-control"
+                      placeholder="Enter your full name"
+                      required
+                      autocomplete="name"
+                    />
+                    <div id="name-error" class="invalid-feedback d-none"></div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Password *</label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      class="form-control"
+                      placeholder="Create a password"
+                      required
+                      autocomplete="new-password"
+                    />
+                    <div class="form-text text-muted">At least 8 characters with uppercase, lowercase, and numbers</div>
+                    <div id="password-error" class="invalid-feedback d-none"></div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Confirm Password *</label>
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      class="form-control"
+                      placeholder="Re-enter your password"
+                      required
+                      autocomplete="new-password"
+                    />
+                    <div id="confirmPassword-error" class="invalid-feedback d-none"></div>
+                  </div>
                 </div>
 
-                <div class="form-group">
-                  <label class="form-label">Full Name *</label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    class="form-input"
-                    placeholder="Enter your full name"
-                    required
-                    autocomplete="name"
-                  />
-                  <div id="name-error" class="form-error hidden"></div>
-                </div>
+                <!-- Step 2: Contact Info -->
+                <div id="step-2" class="registration-step" style="display: none;">
+                  <div class="mb-3">
+                    <label class="form-label">Email (Optional)</label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      class="form-control"
+                      placeholder="your.email@example.com"
+                      autocomplete="email"
+                    />
+                    <div class="form-text text-muted">Used for password recovery and notifications</div>
+                    <div id="email-error" class="invalid-feedback d-none"></div>
+                  </div>
 
-                <div class="form-group">
-                  <label class="form-label">Password *</label>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    class="form-input"
-                    placeholder="Create a password"
-                    required
-                    autocomplete="new-password"
-                  />
-                  <div class="form-hint">At least 8 characters with uppercase, lowercase, and numbers</div>
-                  <div id="password-error" class="form-error hidden"></div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Confirm Password *</label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    class="form-input"
-                    placeholder="Re-enter your password"
-                    required
-                    autocomplete="new-password"
-                  />
-                  <div id="confirmPassword-error" class="form-error hidden"></div>
-                </div>
-              </div>
-
-              <!-- Step 2: Contact Info -->
-              <div id="step-2" class="registration-step" style="display: none;">
-                <div class="form-group">
-                  <label class="form-label">Email (Optional)</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    class="form-input"
-                    placeholder="your.email@example.com"
-                    autocomplete="email"
-                  />
-                  <div class="form-hint">Used for password recovery and notifications</div>
-                  <div id="email-error" class="form-error hidden"></div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Phone (Optional)</label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    class="form-input"
-                    placeholder="+1234567890"
-                    autocomplete="tel"
-                  />
-                  <div class="form-hint">Include country code (e.g., +1 for US)</div>
-                  <div id="phone-error" class="form-error hidden"></div>
-                </div>
+                  <div class="mb-3">
+                    <label class="form-label">Phone (Optional)</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      class="form-control"
+                      placeholder="+1234567890"
+                      autocomplete="tel"
+                    />
+                    <div class="form-text text-muted">Include country code (e.g., +1 for US)</div>
+                    <div id="phone-error" class="invalid-feedback d-none"></div>
+                  </div>
 
                 <div style="padding: 12px; background: #fff3cd; border-radius: 8px; margin-top: 16px;">
                   <p style="margin: 0; font-size: 14px; color: #856404;">
@@ -189,10 +190,10 @@ class RegisterPage {
                   Add Another Question
                 </ion-button>
 
-                <div id="security-questions-error" class="form-error hidden" style="margin-top: 8px;"></div>
+                <div id="security-questions-error" class="invalid-feedback d-none" style="margin-top: 8px;"></div>
               </div>
 
-              <div id="general-error" class="form-error hidden" style="margin-top: 16px;"></div>
+              <div id="general-error" class="invalid-feedback d-none" style="margin-top: 16px;"></div>
 
               <!-- Navigation Buttons -->
               <div style="display: flex; gap: 12px; margin-top: 24px;">
@@ -221,13 +222,14 @@ class RegisterPage {
                   Create Account
                 </ion-button>
               </div>
-            </form>
+              </form>
 
-            <div style="margin-top: 16px; text-align: center;">
-              <span style="font-size: 14px; color: #666;">Already have an account? </span>
-              <a href="/login" data-link style="color: var(--app-primary); text-decoration: none; font-size: 14px;">
-                Sign in
-              </a>
+              <div style="margin-top: 16px; text-align: center;">
+                <span style="font-size: 14px; color: #666;">Already have an account? </span>
+                <a href="/login" data-link style="color: var(--app-primary); text-decoration: none; font-size: 14px;">
+                  Sign in
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -325,11 +327,11 @@ class RegisterPage {
     const errorDiv = document.getElementById(`${fieldName}-error`);
     if (errorDiv) {
       if (result.valid) {
-        errorDiv.classList.add('hidden');
+        errorDiv.classList.add('d-none');
         errorDiv.textContent = '';
         delete this.errors[fieldName];
       } else {
-        errorDiv.classList.remove('hidden');
+        errorDiv.classList.remove('d-none');
         errorDiv.textContent = result.error;
         this.errors[fieldName] = result.error;
       }
@@ -387,7 +389,7 @@ class RegisterPage {
 
     if (questions.length < MIN_SECURITY_QUESTIONS) {
       if (errorDiv) {
-        errorDiv.classList.remove('hidden');
+        errorDiv.classList.remove('d-none');
         errorDiv.textContent = `Please add at least ${MIN_SECURITY_QUESTIONS} security questions`;
       }
       return false;
@@ -400,7 +402,7 @@ class RegisterPage {
         allValid = false;
         const answerError = document.getElementById(`answer-error-${index}`);
         if (answerError) {
-          answerError.classList.remove('hidden');
+          answerError.classList.remove('d-none');
           answerError.textContent = 'Answer must be at least 2 characters';
         }
       }
@@ -408,14 +410,14 @@ class RegisterPage {
 
     if (!allValid) {
       if (errorDiv) {
-        errorDiv.classList.remove('hidden');
+        errorDiv.classList.remove('d-none');
         errorDiv.textContent = 'Please provide valid answers to all security questions';
       }
       return false;
     }
 
     if (errorDiv) {
-      errorDiv.classList.add('hidden');
+      errorDiv.classList.add('d-none');
       errorDiv.textContent = '';
     }
 
@@ -489,9 +491,9 @@ class RegisterPage {
         ` : ''}
       </div>
 
-      <div class="form-group" style="margin-bottom: 12px;">
+      <div class="mb-3" style="margin-bottom: 12px;">
         <select
-          class="form-input question-select"
+          class="form-control question-select"
           data-index="${index}"
           required
         >
@@ -500,15 +502,15 @@ class RegisterPage {
         </select>
       </div>
 
-      <div class="form-group" style="margin-bottom: 0;">
+      <div class="mb-3" style="margin-bottom: 0;">
         <input
           type="text"
-          class="form-input question-answer"
+          class="form-control question-answer"
           placeholder="Your answer"
           data-index="${index}"
           required
         />
-        <div id="answer-error-${index}" class="form-error hidden"></div>
+        <div id="answer-error-${index}" class="invalid-feedback d-none"></div>
       </div>
     `;
 
@@ -534,10 +536,10 @@ class RegisterPage {
       const errorDiv = document.getElementById(`answer-error-${index}`);
       if (errorDiv) {
         if (result.valid) {
-          errorDiv.classList.add('hidden');
+          errorDiv.classList.add('d-none');
           errorDiv.textContent = '';
         } else {
-          errorDiv.classList.remove('hidden');
+          errorDiv.classList.remove('d-none');
           errorDiv.textContent = result.error;
         }
       }
@@ -686,7 +688,7 @@ class RegisterPage {
     // Show loading state
     submitBtn.disabled = true;
     submitBtn.textContent = 'Creating Account...';
-    generalError.classList.add('hidden');
+    generalError.classList.add('d-none');
     generalError.textContent = '';
 
     try {
@@ -709,7 +711,7 @@ class RegisterPage {
       console.error('Registration error:', error);
 
       // Show error
-      generalError.classList.remove('hidden');
+      generalError.classList.remove('d-none');
       generalError.textContent = error.message || 'Registration failed. Please try again.';
 
       // Reset button

@@ -1,0 +1,242 @@
+an API in front of CouchDB.
+For a multi-tenant ERP (user-created organizations) with Web + Mobile (Capacitor) + PouchDB, a hybrid architecture is the correct and proven approach.
+
+Below is a clear, battle-tested architecture tailored for your case.
+
+Why direct CouchDB access alone is NOT enough for an ERP
+
+Your app has all the hard problems:
+
+Multi-tenant (many organizations)
+
+Role-based access (owner, admin, accountant, staff, etc.)
+
+Sensitive data (finance, invoices, payroll)
+
+Web + Mobile
+
+Offline support
+
+CouchDB cannot safely enforce all of this by itself.
+
+✅ Recommended Architecture (Industry-grade)
+Mobile (Capacitor + PouchDB)
+Web (PouchDB)
+        ↓ sync (restricted)
+     CouchDB  ←→  API Server
+                    ↓
+              Auth, Billing,
+              Workflows, Reports
+
+Responsibilities Breakdown (IMPORTANT)
+1️⃣ API Server (MANDATORY)
+
+This is your source of truth.
+
+Must handle:
+
+Authentication (JWT / OAuth)
+
+Organization creation
+
+User ↔ organization mapping
+
+Role & permission logic
+
+Subscription / plan limits
+
+Cross-module workflows
+
+Reporting & exports
+
+Admin operations
+
+Webhooks / integrations
+
+Tech choices
+
+Node.js (Fastify / NestJS)
+
+Python (FastAPI)
+
+Java (Spring Boot)
+
+2️⃣ CouchDB (Data + Sync Engine)
+
+Use CouchDB only for what it’s great at:
+
+Document storage
+
+Replication
+
+Conflict handling
+
+Offline-first sync
+
+🚫 Do NOT expose CouchDB directly to the internet without restrictions.
+
+3️⃣ PouchDB (Client-side)
+
+Each user gets:
+
+Local database
+
+Offline operations
+
+Background sync
+
+But sync is filtered and scoped.
+
+🔐 Multi-Tenancy Strategy (CRITICAL)
+Best approach: One database per organization
+org_acme
+org_xyz
+org_foo
+
+
+Advantages
+
+Strong data isolation
+
+Easy backup / delete
+
+Simple security rules
+
+Easier compliance
+
+Sync filter
+
+User can only sync databases they are authorized for
+
+Alternative (not recommended for ERP)
+
+Single DB with orgId field
+→ Complex filters, higher risk, harder audits
+
+🔐 Authentication Flow (Clean & Secure)
+Step 1: Login via API
+Client → API → JWT
+
+
+JWT contains:
+
+userId
+
+orgIds
+
+roles
+
+subscription plan
+
+Step 2: API provisions CouchDB access
+
+Creates CouchDB user
+
+Assigns DB permissions
+
+Returns:
+
+CouchDB URL
+
+Username
+
+Session token / password
+
+Step 3: PouchDB sync
+PouchDB.sync(localDB, remoteDB, {
+  live: true,
+  retry: true
+});
+
+
+✔ Only allowed org DB
+✔ No admin rights
+✔ No access to other orgs
+
+📄 Data Rules Enforcement
+Where rules live
+Rule Type	Where
+Field validation	API
+Business logic	API
+Cross-doc rules	API
+Simple validation	CouchDB validate_doc_update
+Offline conflict resolution	Client + API
+
+Never trust the client alone.
+
+📊 Reporting & Heavy Queries
+
+ERP reports should:
+
+NEVER run from client
+
+NEVER run from raw CouchDB views directly
+
+Instead:
+
+Client → API → Aggregation DB / Cached Views
+
+
+Use:
+
+Precomputed materialized views
+
+Background jobs
+
+CSV / Excel export via API
+
+🔄 Offline Sync Rules
+
+Allow offline:
+
+Draft invoices
+
+Expenses
+
+Inventory movements
+
+Notes
+
+Require online:
+
+Final posting
+
+Tax submission
+
+Locking periods
+
+Payments
+
+API enforces state transitions.
+
+🚫 What NOT to do
+
+❌ Expose CouchDB admin creds
+❌ Let client choose database names
+❌ Put core business logic in design docs
+❌ Trust _security alone
+❌ One DB for all organizations
+
+Minimal Tech Stack Suggestion
+
+Backend
+
+FastAPI / NestJS
+
+Redis (cache + rate limit)
+
+PostgreSQL (auth, orgs, billing metadata)
+
+CouchDB (ERP documents)
+
+Frontend
+
+Web: React + PouchDB
+
+Mobile: Capacitor + PouchDB
+
+Final Verdict
+
+👉 Yes, an API layer is non-negotiable for your ERP.
+👉 CouchDB is your sync + document store, not your backend.
+👉 This architecture scales cleanly to thousands of orgs.

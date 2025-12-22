@@ -374,7 +374,7 @@ export class SyncStatusComponent {
     if (type !== 'info') {
       setTimeout(() => {
         msgEl.style.display = 'none';
-      }, 3000);
+      }, 3001);
     }
   }
 

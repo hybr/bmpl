@@ -1,0 +1,36 @@
+// Organization card hover effects
+.org-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Role badges (keep custom colors)
+.badge-owner {
+  background: #ffe5e5;
+  color: #dc3545;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.badge-admin { background: #fff4e5; color: #fd7e14; }
+.badge-member { background: #e5f4ff; color: #0d6efd; }
+.badge-viewer { background: #f8f9fa; color: #6c757d; }
+
+// Empty state
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: #6c757d;
+}
+
+.empty-state-icon {
+  font-size: 64px;
+  color: #adb5bd;
+  margin-bottom: 16px;
+}

@@ -31,6 +31,7 @@ export const userLookupService = {
 
   /**
    * Search users by query (email, username, phone, or name)
+   * Uses Moleculer API with local PouchDB fallback
    * @param {string} query - Search query
    * @param {object} options - Search options
    * @returns {Promise<Array>} Matching users
@@ -42,52 +43,12 @@ export const userLookupService = {
     if (!lowerQuery) return [];
 
     try {
-      await userPersistence.ensureInitialized();
-      const db = userPersistence.db;
-
-      // Use pouchdb-find with $regex for partial matching
-      const result = await db.find({
-        selector: {
-          type: DOC_TYPES.USER,
-          $or: [
-            { username: { $regex: new RegExp(lowerQuery, 'i') } },
-            { email: { $regex: new RegExp(lowerQuery, 'i') } },
-            { name: { $regex: new RegExp(lowerQuery, 'i') } },
-            { phone: { $regex: new RegExp(lowerQuery, 'i') } }
-          ]
-        },
-        limit: limit
-      });
-
-      return result.docs.map(doc => this.transformUser(doc));
+      // Use the API-enabled searchUsers method from userPersistence
+      // This will call Moleculer API and fallback to local if offline
+      const users = await userPersistence.searchUsers(lowerQuery, { limit });
+      return users.map(doc => this.transformUser(doc));
     } catch (error) {
       console.error('Error searching users:', error);
-      // Fallback: get all users and filter client-side
-      return this.searchFallback(lowerQuery, limit);
-    }
-  },
-
-  /**
-   * Fallback search when $regex is not supported
-   */
-  async searchFallback(query, limit) {
-    try {
-      await userPersistence.ensureInitialized();
-      const users = await userPersistence.getAllUsers();
-
-      const filtered = users.filter(user => {
-        const searchStr = [
-          user.username || '',
-          user.email || '',
-          user.name || '',
-          user.phone || ''
-        ].join(' ').toLowerCase();
-        return searchStr.includes(query);
-      });
-
-      return filtered.slice(0, limit).map(doc => this.transformUser(doc));
-    } catch (error) {
-      console.error('Error in fallback search:', error);
       return [];
     }
   },
@@ -115,6 +76,7 @@ export const userLookupService = {
 
   /**
    * Verify user exists by exact match on email/username/phone
+   * Uses API search with local fallback
    * @param {string} query - Search query (email, username, or phone)
    * @returns {Promise<object>} Result with success and user
    */
@@ -136,32 +98,20 @@ export const userLookupService = {
         return { success: true, user: this.transformUser(user) };
       }
 
-      // Try phone match
-      const db = userPersistence.db;
-      const phoneResult = await db.find({
-        selector: {
-          type: DOC_TYPES.USER,
-          phone: query.trim()
-        }
-      });
-      if (phoneResult.docs.length > 0) {
-        return { success: true, user: this.transformUser(phoneResult.docs[0]) };
-      }
+      // Try searching via API (will use searchUsers which calls Moleculer API)
+      const searchResults = await userPersistence.searchUsers(lowerQuery, { limit: 5 });
 
-      // Try partial match on name/email as fallback
-      const partialResult = await db.find({
-        selector: {
-          type: DOC_TYPES.USER,
-          $or: [
-            { name: { $regex: new RegExp(lowerQuery, 'i') } },
-            { email: { $regex: new RegExp(lowerQuery, 'i') } }
-          ]
-        },
-        limit: 1
-      });
+      if (searchResults && searchResults.length > 0) {
+        // Find best match (exact or closest)
+        const exactMatch = searchResults.find(u =>
+          u.username?.toLowerCase() === lowerQuery ||
+          u.email?.toLowerCase() === lowerQuery ||
+          u.phone?.toLowerCase() === lowerQuery.toLowerCase() ||
+          u.phone === query.trim()
+        );
 
-      if (partialResult.docs.length > 0) {
-        return { success: true, user: this.transformUser(partialResult.docs[0]) };
+        const bestMatch = exactMatch || searchResults[0];
+        return { success: true, user: this.transformUser(bestMatch) };
       }
 
       return { success: false, message: 'User not found. Please check the email/username and try again.' };

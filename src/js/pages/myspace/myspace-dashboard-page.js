@@ -150,54 +150,62 @@ export class MySpaceDashboardPage extends BasePage {
     const stats = this.stats || {};
 
     container.innerHTML = `
-      <div class="stats-grid">
-        <ion-card class="stat-card" onclick="window.app.navigate('/work/processes?status=active')">
-          <ion-card-content>
-            <div class="stat-icon" style="background-color: var(--ion-color-primary-tint);">
-              <ion-icon name="pulse" color="primary"></ion-icon>
-            </div>
-            <div class="stat-info">
-              <h2>${stats.active || 0}</h2>
-              <p>Active</p>
-            </div>
-          </ion-card-content>
-        </ion-card>
+      <div class="row g-3">
+        <div class="col-12 col-sm-6 col-lg-3">
+          <ion-card class="stat-card h-100" onclick="window.app.navigate('/work/processes?status=active')">
+            <ion-card-content>
+              <div class="stat-icon" style="background-color: var(--ion-color-primary-tint);">
+                <ion-icon name="pulse" color="primary"></ion-icon>
+              </div>
+              <div class="stat-info">
+                <h2>${stats.active || 0}</h2>
+                <p>Active</p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
 
-        <ion-card class="stat-card" onclick="window.app.navigate('/work/tasks')">
-          <ion-card-content>
-            <div class="stat-icon" style="background-color: var(--ion-color-warning-tint);">
-              <ion-icon name="checkbox" color="warning"></ion-icon>
-            </div>
-            <div class="stat-info">
-              <h2>${this.myTasks.length}</h2>
-              <p>My Tasks</p>
-            </div>
-          </ion-card-content>
-        </ion-card>
+        <div class="col-12 col-sm-6 col-lg-3">
+          <ion-card class="stat-card h-100" onclick="window.app.navigate('/work/tasks')">
+            <ion-card-content>
+              <div class="stat-icon" style="background-color: var(--ion-color-warning-tint);">
+                <ion-icon name="checkbox" color="warning"></ion-icon>
+              </div>
+              <div class="stat-info">
+                <h2>${this.myTasks.length}</h2>
+                <p>My Tasks</p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
 
-        <ion-card class="stat-card" onclick="window.app.navigate('/work/processes?status=completed')">
-          <ion-card-content>
-            <div class="stat-icon" style="background-color: var(--ion-color-success-tint);">
-              <ion-icon name="checkmark-circle" color="success"></ion-icon>
-            </div>
-            <div class="stat-info">
-              <h2>${stats.completed || 0}</h2>
-              <p>Completed</p>
-            </div>
-          </ion-card-content>
-        </ion-card>
+        <div class="col-12 col-sm-6 col-lg-3">
+          <ion-card class="stat-card h-100" onclick="window.app.navigate('/work/processes?status=completed')">
+            <ion-card-content>
+              <div class="stat-icon" style="background-color: var(--ion-color-success-tint);">
+                <ion-icon name="checkmark-circle" color="success"></ion-icon>
+              </div>
+              <div class="stat-info">
+                <h2>${stats.completed || 0}</h2>
+                <p>Completed</p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
 
-        <ion-card class="stat-card" onclick="window.app.navigate('/work/processes')">
-          <ion-card-content>
-            <div class="stat-icon" style="background-color: var(--ion-color-medium-tint);">
-              <ion-icon name="folder" color="medium"></ion-icon>
-            </div>
-            <div class="stat-info">
-              <h2>${stats.total || 0}</h2>
-              <p>Total</p>
-            </div>
-          </ion-card-content>
-        </ion-card>
+        <div class="col-12 col-sm-6 col-lg-3">
+          <ion-card class="stat-card h-100" onclick="window.app.navigate('/work/processes')">
+            <ion-card-content>
+              <div class="stat-icon" style="background-color: var(--ion-color-medium-tint);">
+                <ion-icon name="folder" color="medium"></ion-icon>
+              </div>
+              <div class="stat-info">
+                <h2>${stats.total || 0}</h2>
+                <p>Total</p>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
       </div>
 
       ${this.renderCategoryBreakdown()}
@@ -273,30 +281,34 @@ export class MySpaceDashboardPage extends BasePage {
         </ion-card>
 
         <!-- Category & Top Processes Grid -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+        <div class="row g-3" style="margin-top: 16px;">
           <!-- Category Distribution -->
-          <ion-card>
-            <ion-card-header>
-              <ion-card-title>By Category</ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
-              <div style="position: relative; height: 250px;">
-                <canvas id="category-chart" style="width: 100%; height: 100%;"></canvas>
-              </div>
-            </ion-card-content>
-          </ion-card>
+          <div class="col-12 col-md-6">
+            <ion-card class="h-100">
+              <ion-card-header>
+                <ion-card-title>By Category</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <div style="position: relative; height: 250px;">
+                  <canvas id="category-chart" style="width: 100%; height: 100%;"></canvas>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </div>
 
           <!-- Top Process Types -->
-          <ion-card>
-            <ion-card-header>
-              <ion-card-title>Top Process Types</ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
-              <div style="position: relative; height: 250px;">
-                <canvas id="top-processes-chart" style="width: 100%; height: 100%;"></canvas>
-              </div>
-            </ion-card-content>
-          </ion-card>
+          <div class="col-12 col-md-6">
+            <ion-card class="h-100">
+              <ion-card-header>
+                <ion-card-title>Top Process Types</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <div style="position: relative; height: 250px;">
+                  <canvas id="top-processes-chart" style="width: 100%; height: 100%;"></canvas>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </div>
         </div>
 
         <!-- Advanced Metrics -->
@@ -305,7 +317,7 @@ export class MySpaceDashboardPage extends BasePage {
             <ion-card-title>Performance Metrics</ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <div class="row g-3">
               ${this.renderAdvancedMetrics()}
             </div>
           </ion-card-content>
@@ -416,21 +428,29 @@ export class MySpaceDashboardPage extends BasePage {
     const slaCompliance = sla.complianceRate || 0;
 
     return `
-      <div style="padding: 16px; background: var(--ion-color-light); border-radius: 8px;">
-        <div style="font-size: 12px; color: var(--ion-color-medium); margin-bottom: 4px;">Completion Rate</div>
-        <div style="font-size: 24px; font-weight: bold; color: var(--ion-color-success);">${completionRate.toFixed(1)}%</div>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <div style="padding: 16px; background: var(--ion-color-light); border-radius: 8px;">
+          <div style="font-size: 12px; color: var(--ion-color-medium); margin-bottom: 4px;">Completion Rate</div>
+          <div style="font-size: 24px; font-weight: bold; color: var(--ion-color-success);">${completionRate.toFixed(1)}%</div>
+        </div>
       </div>
-      <div style="padding: 16px; background: var(--ion-color-light); border-radius: 8px;">
-        <div style="font-size: 12px; color: var(--ion-color-medium); margin-bottom: 4px;">Avg Duration</div>
-        <div style="font-size: 24px; font-weight: bold; color: var(--ion-color-primary);">${this.formatDuration(avgDuration)}</div>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <div style="padding: 16px; background: var(--ion-color-light); border-radius: 8px;">
+          <div style="font-size: 12px; color: var(--ion-color-medium); margin-bottom: 4px;">Avg Duration</div>
+          <div style="font-size: 24px; font-weight: bold; color: var(--ion-color-primary);">${this.formatDuration(avgDuration)}</div>
+        </div>
       </div>
-      <div style="padding: 16px; background: var(--ion-color-light); border-radius: 8px;">
-        <div style="font-size: 12px; color: var(--ion-color-medium); margin-bottom: 4px;">SLA Compliance</div>
-        <div style="font-size: 24px; font-weight: bold; color: ${slaCompliance >= 80 ? 'var(--ion-color-success)' : 'var(--ion-color-danger)'};">${slaCompliance.toFixed(1)}%</div>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <div style="padding: 16px; background: var(--ion-color-light); border-radius: 8px;">
+          <div style="font-size: 12px; color: var(--ion-color-medium); margin-bottom: 4px;">SLA Compliance</div>
+          <div style="font-size: 24px; font-weight: bold; color: ${slaCompliance >= 80 ? 'var(--ion-color-success)' : 'var(--ion-color-danger)'};">${slaCompliance.toFixed(1)}%</div>
+        </div>
       </div>
-      <div style="padding: 16px; background: var(--ion-color-light); border-radius: 8px;">
-        <div style="font-size: 12px; color: var(--ion-color-medium); margin-bottom: 4px;">Active Rate</div>
-        <div style="font-size: 24px; font-weight: bold; color: var(--ion-color-warning);">${(metrics.activeRate || 0).toFixed(1)}%</div>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <div style="padding: 16px; background: var(--ion-color-light); border-radius: 8px;">
+          <div style="font-size: 12px; color: var(--ion-color-medium); margin-bottom: 4px;">Active Rate</div>
+          <div style="font-size: 24px; font-weight: bold; color: var(--ion-color-warning);">${(metrics.activeRate || 0).toFixed(1)}%</div>
+        </div>
       </div>
     `;
   }

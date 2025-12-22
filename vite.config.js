@@ -3,6 +3,15 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   root: './src',
   publicDir: '../public',
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler',
+        additionalData: `@import "bootstrap/scss/functions"; @import "bootstrap/scss/variables";`,
+        silenceDeprecations: ['legacy-js-api', 'import', 'global-builtin', 'color-functions', 'if-function']
+      }
+    }
+  },
   build: {
     outDir: '../dist',
     emptyOutDir: true,
@@ -14,13 +23,20 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          pouchdb: ['pouchdb', 'pouchdb-find']
+          pouchdb: ['pouchdb', 'pouchdb-find'],
+          bootstrap: ['bootstrap']
         }
       }
     }
   },
   server: {
     port: 5173,
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 5173,
+      clientPort: 5173
+    },
     proxy: {
       // Proxy CouchDB requests to avoid CORS issues in development
       '/couchdb': {
